@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:15
+    container_name: convo_db
+    environment:
+      POSTGRES_USER: convo
+      POSTGRES_PASSWORD: convo
+      POSTGRES_DB: convo_db
+    ports:
+      - "5433:5432"  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
