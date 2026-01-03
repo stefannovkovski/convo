@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsString, MaxLength} from 'class-validator';
+import { IsNumber, IsOptional, IsString, MaxLength} from 'class-validator';
 
 export class CreatePostDto{
-
   @ApiProperty()
   @IsString()
   @MaxLength(280)
@@ -12,4 +11,9 @@ export class CreatePostDto{
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  quotedPostId?: number;
 }
