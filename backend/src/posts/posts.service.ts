@@ -35,7 +35,7 @@ export class PostsService {
     }
 
     async toggleLike(postId: number, userId:number){
-        const existingLike = await this.postRepository.findLike(postId, userId);
+        const existingLike = await this.postRepository.findLike(userId, postId);
 
         if(existingLike){
             await this.postRepository.deleteLike(userId, postId);
@@ -53,7 +53,7 @@ export class PostsService {
     }
 
     async toggleRetweet(postId: number, userId:number){
-        const existingRetweet = await this.postRepository.findRetweet(postId, userId);
+        const existingRetweet = await this.postRepository.findRetweet(userId, postId);
 
         if(existingRetweet){
             await this.postRepository.deleteRetweet(userId, postId);
