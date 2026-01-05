@@ -3,10 +3,12 @@ export interface User {
   name: string;
   username: string;
   email: string;
-  createdAt: Date;
-  avatar?: string;
   bio?: string;
+  avatar?: string;
+  createdAt: Date;
   followersCount?: number;
   followingCount?: number;
-  isFollowing?: boolean;
+  postsCount?: number;
+  isMe?: boolean;
+  isFollowedByMe?: boolean;
 }

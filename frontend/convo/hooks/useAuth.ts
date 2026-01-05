@@ -1,11 +1,10 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { getToken, getUser, saveUser, logout } from '@/lib/auth';
-import { api } from '@/services/Api';
-import { User } from '@/types/user/User';
-import { AxiosError } from 'axios';
+import { getToken, logout, saveUser } from "@/lib/auth";
+import { api } from "@/services/Api";
+import { User } from "@/types/user/User";
+import { AxiosError } from "axios";
+import { useEffect, useState } from "react";
 
-export function useAuth(username? : string) {
+export function useAuth(username?: string){
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,76 +12,74 @@ export function useAuth(username? : string) {
   const fetchCurrentUser = async () => {
     try {
       const token = getToken();
-    
-      if (!token) {
+
+      if (!token){
         setLoading(false);
         return;
       }
 
-      const cachedUser = getUser();
-      if (cachedUser) {
-        setUser(cachedUser);
-        setLoading(false);
-        fetchUserFromAPI();
-        return;
-      }
-
-      await fetchUserFromAPI();
-    } catch (err) {
-      
-      if (err instanceof AxiosError) {
-        if (err.response?.status === 401) {
+      await fetchUserFromApi();
+    }catch(err){
+      if (err instanceof AxiosError){
+        if(err.response?.status === 401) {
           logout();
-          setError('Session expired. Please login again.');
+          setError('Session expired. Please login again.')
         } else {
           setError(err.response?.data?.message || 'Failed to fetch user');
         }
-      } else {
+      }
+      else {
         setError(err instanceof Error ? err.message : 'Failed to fetch user');
       }
-      
+
       setLoading(false);
     }
   };
 
-  const fetchUserFromAPI = async () => {
+  const fetchUserFromApi = async () => {
     const token = getToken();
-    if (!token) return;
+    if(!token) return;
 
-    try {
-
-    const url = username
-      ? `/users/details/${username}`
-      : '/users/me';
+    try{
+      const url = username ? `/users/details/${username}` : '/users/me';
       const response = await api.get(url);
-      
+
       const userData = response.data;
       setUser(userData);
-      saveUser(userData);
+
+      if(!username){
+        saveUser(userData);
+      }
+
       setLoading(false);
       setError(null);
-    } catch (err) {
-      if (err instanceof AxiosError && err.response?.status === 401) {
+    }catch(err){
+      if(err instanceof AxiosError && err.response?.status === 401){
         logout();
       }
       throw err;
     }
   };
-  
-  const toggleFollow = async () => {
-    await api.post(`/users/${username}/follow`);
-    setUser((prev: any) => ({
-      ...prev,
-      isFollowing: !prev.isFollowing,
-      followersCount: prev.isFollowing
-        ? prev.followersCount - 1
-        : prev.followersCount + 1,
-    }));
+
+const toggleFollow = async () => {
+    if (!username || !user) {
+      return;
+    }
+    
+    try {
+      await api.post(`/users/${username}/follow`);
+      
+      await fetchUserFromApi();
+    } catch (err) {
+      console.error('Failed to toggle follow:', err);
+      setError('Failed to update follow status. Please try again.');
+    }
   };
 
   useEffect(() => {
     fetchCurrentUser();
-  }, []);
+  }, [username]);
 
   return { user, loading, error, refetch: fetchCurrentUser, toggleFollow };
+
 }
