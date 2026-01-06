@@ -1,39 +1,34 @@
 'use client';
 
-import { useState } from 'react';
 import { TextField, Button, Box, Alert, CircularProgress } from '@mui/material';
-import { authService } from '../../services/auth/auth.service';
-import { saveToken } from '@/lib/auth';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
 export default function LoginForm() {
+  const { login, loading, error } = useAuth();
   const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const { accessToken } = await authService.login({ email, password });
-      saveToken(accessToken);  
-      router.push('/dashboard/home'); 
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    await login(email, password);
+    router.push('/dashboard/home');
   };
 
   return (
     <Box
       component="form"
       onSubmit={handleSubmit}
-      sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, width: '100%' }}>
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2.5,
+        width: '100%',
+      }}
+    >
       {error && <Alert severity="error">{error}</Alert>}
 
       <TextField
@@ -41,24 +36,31 @@ export default function LoginForm() {
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        fullWidth
         required
+        fullWidth
       />
+
       <TextField
         label="Password"
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        fullWidth
         required
+        fullWidth
       />
+
       <Button
         type="submit"
-        variant="contained"
-        size="large"
+        variant="outlined"
         disabled={loading}
+        sx={{
+          borderRadius: 3,
+          fontWeight: 700,
+          py: 1.2,
+          textTransform: 'none',
+        }}
       >
-        {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
+        {loading ? <CircularProgress size={22} /> : 'Login'}
       </Button>
     </Box>
   );

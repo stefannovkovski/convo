@@ -11,7 +11,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Image from 'next/image';
 import { useState } from 'react';
 import CreatePostDialog from '@/components/posts/CreatePostDialog';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useUser';
 import { logout } from '@/lib/auth';
 import LogoutIcon from '@mui/icons-material/Logout';
 import usePosts from '@/hooks/usePosts';
@@ -147,7 +147,10 @@ export default function Sidebar() {
           </>
         ) : user ? (
           <>
-            <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}  src="/default-avatar.png">
+            <Avatar 
+              src={`${process.env.NEXT_PUBLIC_API_URL}${user.avatar}`}
+              sx={{ width: 40, height: 40, bgcolor: 'primary.main' }} 
+            >
 
             </Avatar>
             <Box sx={{ flex: 1, minWidth: 0 }}>

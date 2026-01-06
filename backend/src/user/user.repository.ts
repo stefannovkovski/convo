@@ -67,6 +67,7 @@ export class UsersRepository {
                         id: true,
                         name: true,
                         username: true,
+                        avatar: true,
                     },
                 },
                 quotedPost: {
@@ -76,6 +77,7 @@ export class UsersRepository {
                                 id: true,
                                 name: true,
                                 username: true,
+                                avatar: true,
                             },
                         },
                         _count: {
@@ -128,6 +130,13 @@ async unfollow(followerId: number, followingId: number) {
     },
   });
 }
+
+  async update(userId: number, data: any) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+  }
 
 
 }

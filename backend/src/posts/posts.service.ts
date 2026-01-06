@@ -23,15 +23,15 @@ export class PostsService {
         return PostResponseDto.fromPostsWithLikes(posts, likedPostIdsSet, retweetedPostIdsSet);
     }
 
-    async create(dto: CreatePostDto, userId: number): Promise<PostResponseDto>{
-        const post = await this.postRepository.createPost({
-            content : dto.content,
-            imageUrl: dto.imageUrl,
-            authorId: userId,
-            quotedPostId: dto.quotedPostId,
-        });
+    async create(dto: CreatePostDto, imageUrl: string | undefined, userId: number): Promise<PostResponseDto> {
+    const post = await this.postRepository.createPost({
+        content: dto.content,
+        imageUrl,
+        authorId: userId,
+        quotedPostId: dto.quotedPostId,
+    });
 
-        return PostResponseDto.fromPost(post, false);
+    return PostResponseDto.fromPost(post, false);
     }
 
     async toggleLike(postId: number, userId:number){

@@ -3,19 +3,14 @@
 import { useParams, useRouter } from 'next/navigation';
 import usePosts from '@/hooks/usePosts';
 import PostCard from '@/components/posts/PostCard';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useUser';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 
 export default function ProfilePage() {
   const { username } = useParams();
-  const router = useRouter();
 
   const { posts, loading, onCreate, onToggleLike, onToggleRetweet } = usePosts(username as string);
-  const { user, loading: profileLoading, toggleFollow } = useAuth(username as string);
-
-  const handleEdit = () => {
-    router.push('/settings/profile');
-  };
+  const { user, loading: profileLoading, toggleFollow, updateProfile } = useAuth(username as string);
 
   if (profileLoading) return null;
 
@@ -34,7 +29,7 @@ export default function ProfilePage() {
         isMe={user.isMe}
         isFollowing={user.isFollowedByMe}
         onToggleFollow={user.isMe ? undefined : toggleFollow}
-        onEdit={user.isMe ? handleEdit : undefined}
+        onEdit={user.isMe ? updateProfile : undefined}
       />
 
       {posts.map(post => (

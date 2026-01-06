@@ -17,7 +17,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return this.sanitizeUser(user);
+    return this.sanitizeUser(user, true);
   }
 
   async findUserPosts(username: string, userId: number) {
@@ -51,7 +51,7 @@ export class UsersService {
       name: user.name,
       username: user.username,
       bio: user.bio,
-      avatar: user.avatar,
+      avatar: user.avatar || '/default-avatar.png',
       createdAt: user.createdAt,
 
       followersCount: user._count.followers,
@@ -77,23 +77,49 @@ export class UsersService {
     const existingFollow = await this.usersRepository.checkFollow(followerId,userToFollow.id,);
     
     if(existingFollow){
-
       await this.usersRepository.unfollow(followerId, userToFollow.id);
       return { isFollowing: false };
     } else {
       await this.usersRepository.follow(followerId, userToFollow.id);
       return { isFollowing: true };
     }
-  
   }
 
+  async updateProfile(
+    userId: number,
+    data: { name?: string; bio?: string },
+    avatarUrl?: string
+  ) {
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
-  private sanitizeUser(user: any) {
+    // Only update fields provided
+    const updatedData: any = {};
+    
+    if (data.name !== undefined) updatedData.name = data.name;
+    if (data.bio !== undefined) updatedData.bio = data.bio;
+    if (avatarUrl) updatedData.avatar = avatarUrl;
+
+    const updatedUser = await this.usersRepository.update(userId, updatedData);
+
+    return this.sanitizeUser(updatedUser, true);
+  }
+
+  private sanitizeUser(user: any, includeIsMe: boolean = false) {
     const { password, ...sanitizedUser } = user;
 
-    return {
+    const result: any = {
       ...sanitizedUser,
       avatar: user.avatar || '/default-avatar.png',
     };
+
+    // Include isMe flag when it's the current user's own profile
+    if (includeIsMe) {
+      result.isMe = true;
+    }
+
+    return result;
   }
 }

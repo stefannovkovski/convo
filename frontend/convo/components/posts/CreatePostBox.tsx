@@ -1,37 +1,36 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Box, Avatar, TextField, Button, IconButton, Alert } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
+import { getUser } from '@/lib/auth';
 
 interface CreatePostBoxProps {
-  onCreate: (data: { content: string; imageUrl?: string }) => void;
+  onCreate: (data: { content: string;} | FormData) => void;
 }
 
 export default function CreatePostBox({ onCreate }: CreatePostBoxProps) {
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
 
-    try {
-      setError(null);
-      onCreate({ content });
-      setContent('');
-    } catch (error) {
-      console.error('Error creating post:', error);
-      setError(error instanceof Error ? error.message : 'Failed to create post');
+    if (image) {
+      const formData = new FormData();
+      formData.append('content', content);
+      formData.append('image', image);
+      onCreate(formData);
+    } else {
+      onCreate({ content }); 
     }
+    setContent('');
+    setImage(null);
   };
 
   return (
-    <Box
-      sx={{
-        borderBottom: 1,
-        borderColor: 'divider',
-        p: 2,
-      }}
-    >
+    <Box sx={{ borderBottom: 1, borderColor: 'divider', p: 2,}}>
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
@@ -39,7 +38,7 @@ export default function CreatePostBox({ onCreate }: CreatePostBoxProps) {
       )}
 
       <Box sx={{ display: 'flex', gap: 1.5 }}>
-        <Avatar sx={{ width: 48, height: 48 }}>U</Avatar>
+        <Avatar sx={{ width: 48, height: 48 }}src={`${process.env.NEXT_PUBLIC_API_URL}${getUser().avatar}`}>U</Avatar>
 
         <Box sx={{ flex: 1 }}>
           <TextField
@@ -63,12 +62,28 @@ export default function CreatePostBox({ onCreate }: CreatePostBoxProps) {
             sx={{ mb: 2 }}
           />
 
+          {image && (
+            <Box sx={{ mb: 2 }}>
+              <img
+                src={URL.createObjectURL(image)}
+                alt="preview"
+                style={{ maxWidth: '100%', borderRadius: 8}}
+              />
+            </Box>
+          )}
+
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <IconButton size="small" color="primary">
+              <IconButton size="small" color="primary" onClick={() => fileInputRef.current?.click()}>
                 <ImageIcon />
               </IconButton>
-            </Box>
+
+              <input
+                ref={fileInputRef}
+                type='file'
+                hidden
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files?.[0] || null)}
+              />
 
             <Button
               variant="contained"

@@ -7,6 +7,7 @@ export interface PostResponseDto {
     id: number;
     name: string;
     username: string;
+    avatar: string;
   };
   counts: {
     likes: number;

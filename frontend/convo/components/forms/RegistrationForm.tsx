@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { TextField, Button, Box, Alert, CircularProgress } from '@mui/material';
-import { authService } from '@/services/auth/auth.service';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function RegisterForm() {
+  const { register, loading, error } = useAuth();
+
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -13,37 +15,36 @@ export default function RegisterForm() {
     repeatPassword: '',
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [localError, setLocalError] = useState('');
   const [success, setSuccess] = useState('');
 
   const handleChange =
     (field: keyof typeof formData) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setFormData({ ...formData, [field]: e.target.value });
-      setError('');
+      setLocalError('');
       setSuccess('');
     };
 
   const validateForm = () => {
     if (Object.values(formData).some((val) => !val.trim())) {
-      setError('Please fill in all fields');
+      setLocalError('Please fill in all fields');
       return false;
     }
 
     if (formData.password !== formData.repeatPassword) {
-      setError('Passwords do not match');
+      setLocalError('Passwords do not match');
       return false;
     }
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setLocalError('Password must be at least 8 characters');
       return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address');
+      setLocalError('Please enter a valid email address');
       return false;
     }
 
@@ -55,13 +56,9 @@ export default function RegisterForm() {
 
     if (!validateForm()) return;
 
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
     try {
-      const result = await authService.register(formData);
-      setSuccess(result.message || 'Registration successful! You can now log in.');
+      await register(formData);
+      setSuccess('Registration successful! You can now log in.');
 
       setFormData({
         name: '',
@@ -70,10 +67,7 @@ export default function RegisterForm() {
         password: '',
         repeatPassword: '',
       });
-    } catch (err: any) {
-      setError(err?.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
+    } catch {
     }
   };
 
@@ -88,21 +82,45 @@ export default function RegisterForm() {
         width: '100%',
       }}
     >
-      {error && (
-        <Alert severity="error" sx={{ borderRadius: 2 }}>
-          {error}
+      {(localError || error) && (
+        <Alert severity="error">
+          {localError || error}
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ borderRadius: 2 }}>
+        <Alert severity="success">
           {success}
         </Alert>
       )}
 
-      <TextField label="Full Name" value={formData.name} onChange={handleChange('name')} fullWidth required disabled={loading} />
-      <TextField label="Username" value={formData.username} onChange={handleChange('username')} fullWidth required disabled={loading} />
-      <TextField label="Email" type="email" value={formData.email} onChange={handleChange('email')} fullWidth required disabled={loading} />
+      <TextField
+        label="Full Name"
+        value={formData.name}
+        onChange={handleChange('name')}
+        fullWidth
+        required
+        disabled={loading}
+      />
+
+      <TextField
+        label="Username"
+        value={formData.username}
+        onChange={handleChange('username')}
+        fullWidth
+        required
+        disabled={loading}
+      />
+
+      <TextField
+        label="Email"
+        type="email"
+        value={formData.email}
+        onChange={handleChange('email')}
+        fullWidth
+        required
+        disabled={loading}
+      />
 
       <TextField
         label="Password"
@@ -125,8 +143,18 @@ export default function RegisterForm() {
         disabled={loading}
       />
 
-      <Button type="submit" variant="contained" size="large" disabled={loading}>
-        {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
+      <Button
+        type="submit"
+        variant="outlined"
+        disabled={loading}
+        sx={{
+          borderRadius: 3,
+          fontWeight: 700,
+          py: 1.2,
+          textTransform: 'none',
+        }}
+      >
+        {loading ? <CircularProgress size={24} /> : 'Create Account'}
       </Button>
     </Box>
   );

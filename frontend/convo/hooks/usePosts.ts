@@ -35,20 +35,38 @@ export default function usePosts(username?: string){
     })
     }, []);
 
-    const onCreate = useCallback((data: CreatePostDto) => {
-        api
-        .post<PostResponseDto>("/posts", data)
-        .then(() => {
-            console.log("Successfully created a new post.");
-            fetchPosts();
-        })
-        .catch((error) => {
-            console.log(error);
-            setState((prevState) => ({
-            ...prevState,
-            error: error.response?.data?.message || "Failed to create post",
-            }));
-        });
+    const onCreate = useCallback((data: FormData | { content: string; imageUrl?: string } ) => {
+        if (data instanceof FormData) {
+            api.post<PostResponseDto>("/posts", data, {
+                headers: { 'Content-Type': 'multipart/form-data'},
+            })
+            .then(() => {
+                console.log("Successfully created a new post.");
+                fetchPosts();
+            })
+            .catch((error) => {
+                console.log(error);
+                setState((prevState) => ({
+                ...prevState,
+                error: error.response?.data?.message || "Failed to create post",
+                }));
+            });
+        } else {
+            api.post<PostResponseDto>('/posts', data)
+            .then(() => {
+                console.log("Successfully created a new post.");
+                fetchPosts();
+            })
+            .catch((error) => {
+                console.log(error);
+                setState((prevState) => ({
+                ...prevState,
+                error: error.response?.data?.message || "Failed to create post",
+                }));
+            });
+        }
+
+
     }, [fetchPosts]);
 
     const onDelete = useCallback((postId: number) => {

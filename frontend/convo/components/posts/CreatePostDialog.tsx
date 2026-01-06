@@ -6,7 +6,7 @@ import CreatePostBox from './CreatePostBox';
 interface CreatePostDialogProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (data: { content: string; imageUrl?: string }) => void;
+  onCreate: (data: { content: string; imageUrl?: string } | FormData) => void;
 }
 
 export default function CreatePostDialog({ open, onClose, onCreate }: CreatePostDialogProps) {

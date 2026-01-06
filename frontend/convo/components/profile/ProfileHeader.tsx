@@ -4,6 +4,8 @@ import { Box, Avatar, Typography, Button } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckIcon from '@mui/icons-material/Check';
 import EditIcon from '@mui/icons-material/Edit';
+import { useState } from 'react';
+import UpdateProfileDialog from './UpdateProfileDialog';
 
 type ProfileHeaderProps = {
   avatarUrl?: string;
@@ -16,7 +18,7 @@ type ProfileHeaderProps = {
   isMe?: boolean;
   isFollowing?: boolean;
   onToggleFollow?: () => void;
-  onEdit?: () => void;
+  onEdit?: (data) => void;
 };
 
 export default function ProfileHeader({
@@ -32,6 +34,8 @@ export default function ProfileHeader({
   onToggleFollow,
   onEdit,
 }: ProfileHeaderProps) {
+
+  const [editOpen, setEditOpen] = useState(false);
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
       <Box
@@ -51,7 +55,7 @@ export default function ProfileHeader({
           }}
         >
           <Avatar
-            src={avatarUrl}
+            src={`${process.env.NEXT_PUBLIC_API_URL}${avatarUrl}`}
             alt={name}
             sx={{
               width: 134,
@@ -61,15 +65,15 @@ export default function ProfileHeader({
               mt: -8,
             }}
           >
-            {name.charAt(0).toUpperCase()}
           </Avatar>
 
           {isMe ? (
-            <Button
+            <>
+              <Button
               variant="outlined"
               size="large"
               startIcon={<EditIcon />}
-              onClick={onEdit}
+              onClick={() => setEditOpen(true)}
               sx={{
                 borderRadius: 3,
                 textTransform: 'none',
@@ -80,6 +84,21 @@ export default function ProfileHeader({
             >
               Edit Profile
             </Button>
+
+              <UpdateProfileDialog
+                open={editOpen}
+                onClose={() => setEditOpen(false)}
+                initialData={{
+                  name,
+                  bio,
+                  avatarUrl,
+                }}
+                onSave={(data) => {
+                  onEdit?.(data);
+                }}
+              >
+              </UpdateProfileDialog>
+            </>
           ) : onToggleFollow ? (
             <Button
               key={isFollowing ? 'following' : 'follow'} 

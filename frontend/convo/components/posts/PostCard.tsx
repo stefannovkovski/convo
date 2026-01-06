@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Box, Avatar, Typography, IconButton, Card } from '@mui/material';
+import { Box, Avatar, Typography, IconButton, Card, Link } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
@@ -54,7 +54,10 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
         }}
       >
         <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <Avatar sx={{ width: 48, height: 48 }} src='/default-avatar.png'>
+          {/* Avatar */}
+          <Avatar sx={{ width: 48, height: 48 }}
+          src={`${process.env.NEXT_PUBLIC_API_URL}${post.author.avatar}`}
+          >
           </Avatar>
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -62,7 +65,19 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
               <Typography variant="body2" fontWeight={700} noWrap>
                 {post.author.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary" noWrap>
+              <Typography
+                component={Link}
+                href={`/dashboard/${post.author.username}`}
+                variant="body2"
+                color="text.secondary"
+                noWrap
+                sx={{
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline',
+                  },
+                }}
+              >
                 @{post.author.username}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -82,7 +97,7 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
             {post.imageUrl && (
               <Box
                 component="img"
-                src={post.imageUrl}
+                src={`${process.env.NEXT_PUBLIC_API_URL}${post.imageUrl}`}
                 alt="Post image"
                 sx={{
                   width: '100%',
@@ -108,7 +123,7 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                  <Avatar sx={{ width: 20, height: 20, fontSize: '0.75rem' }}>
+                  <Avatar sx={{ width: 20, height: 20, fontSize: '0.75rem' }}     src={`${process.env.NEXT_PUBLIC_API_URL}${post.quotedPost.author.avatar}`}>
                     {post.quotedPost.author.name.charAt(0)}
                   </Avatar>
                   <Typography variant="caption" fontWeight={700}>
@@ -118,7 +133,21 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                     @{post.quotedPost.author.username}
                   </Typography>
                 </Box>
-                <Typography variant="body2">{post.quotedPost.content}</Typography>
+                <Typography variant="body2" sx={{ mb:2 }}>{post.quotedPost.content}</Typography>
+                {post.quotedPost?.imageUrl && (
+                <Box
+                  component="img"
+                  src={`${process.env.NEXT_PUBLIC_API_URL}${post.quotedPost?.imageUrl}`}
+                  alt="Post image"
+                  sx={{
+                    width: '100%',
+                    borderRadius: 2,
+                    mb: 1,
+                    maxHeight: 200,
+                    objectFit: 'cover',
+                  }}
+                />
+              )}
               </Card>
             )}
 
