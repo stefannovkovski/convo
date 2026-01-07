@@ -19,6 +19,20 @@ export class UsersService {
 
     return this.sanitizeUser(user, true);
   }
+    private sanitizeUser(user: any, includeIsMe: boolean = false) {
+    const { password, ...sanitizedUser } = user;
+
+    const result: any = {
+      ...sanitizedUser,
+      avatar: user.avatar || '/default-avatar.png',
+    };
+
+    if (includeIsMe) {
+      result.isMe = true;
+    }
+
+    return result;
+  }
 
   async findUserPosts(username: string, userId: number) {
     const user = await this.usersRepository.findByUsername(username);
@@ -27,12 +41,12 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const posts = await this.usersRepository.getUserPosts(user.id);
+    const posts = await this.usersRepository.getMixedFeed(user.id);
 
     const likedPosts = await this.postRepository.getUserLikedPostIds(userId);
     const retweetedPosts = await this.postRepository.getUserRetweetedPostIds(userId);
 
-    return PostResponseDto.fromPostsWithLikes( posts, new Set(likedPosts), new Set(retweetedPosts),);
+    return PostResponseDto.fromMixedFeed( posts, new Set(likedPosts), new Set(retweetedPosts),);
   }
 
   async getDetails(username: string, loggedInUserId: number) {
@@ -95,7 +109,6 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Only update fields provided
     const updatedData: any = {};
     
     if (data.name !== undefined) updatedData.name = data.name;
@@ -107,19 +120,5 @@ export class UsersService {
     return this.sanitizeUser(updatedUser, true);
   }
 
-  private sanitizeUser(user: any, includeIsMe: boolean = false) {
-    const { password, ...sanitizedUser } = user;
 
-    const result: any = {
-      ...sanitizedUser,
-      avatar: user.avatar || '/default-avatar.png',
-    };
-
-    // Include isMe flag when it's the current user's own profile
-    if (includeIsMe) {
-      result.isMe = true;
-    }
-
-    return result;
-  }
 }

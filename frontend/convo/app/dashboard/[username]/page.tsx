@@ -9,7 +9,7 @@ import ProfileHeader from '@/components/profile/ProfileHeader';
 export default function ProfilePage() {
   const { username } = useParams();
 
-  const { posts, loading, onCreate, onToggleLike, onToggleRetweet } = usePosts(username as string);
+  const { posts, loading, onCreate, onComment, onToggleLike, onToggleRetweet } = usePosts({username: username as string});
   const { user, loading: profileLoading, toggleFollow, updateProfile } = useAuth(username as string);
 
   if (profileLoading) return null;
@@ -39,6 +39,7 @@ export default function ProfilePage() {
           onToggleLike={onToggleLike}
           onToggleRetweet={onToggleRetweet}
           onCreate={onCreate}
+          onComment={onComment}
         />
       ))}
     </>

@@ -1,38 +1,45 @@
 import { api } from "@/services/Api";
 import { CreatePostDto } from "@/types/post/CreatePostDto";
+import { PostDetailsResponseDto } from "@/types/post/PostDetailsResponseDto";
 import { PostResponseDto } from "@/types/post/PostResponseDto";
 import { useCallback, useEffect, useState } from "react";
 
 const initialState = {
-    posts: [] as PostResponseDto[],
+    posts: [] as PostResponseDto[] | PostDetailsResponseDto[],
     loading: true,
     error: null as string | null,
 }
 
-export default function usePosts(username?: string){
+export default function usePosts(params?: {username?: string; postId?: number}){
     const [state, setState] = useState(initialState);
+    type PostDto = PostResponseDto | PostDetailsResponseDto;
 
-    const url = username
-      ? `/users/${username}`
-      : '/posts/feed';
-      
+    const url = params?.postId
+    ? `/posts/${params.postId}`
+    : params?.username
+        ? `/users/${params.username}`
+        : '/posts/feed';
+        
     const fetchPosts = useCallback(() => {
-        setState(initialState);
-        api.get<PostResponseDto[]>(url)
-        .then((response) => {
-            setState({
-                posts: response.data,
-                loading: false,
-                error: null,
+            setState(initialState);
+            api.get<PostDto | PostDto[]>(url)
+            .then((response) => {
+                const posts = Array.isArray(response.data)
+                    ? response.data
+                    : [response.data];
+                setState({
+                    posts,
+                    loading: false,
+                    error: null,
+                })
             })
+            .catch((error) => {
+            setState({
+            posts: [],
+            loading: false,
+            error: error.response?.data?.message || "Failed to fetch posts",
+            });        
         })
-        .catch((error) => {
-        setState({
-          posts: [],
-          loading: false,
-          error: error.response?.data?.message || "Failed to fetch posts",
-        });        
-    })
     }, []);
 
     const onCreate = useCallback((data: FormData | { content: string; imageUrl?: string } ) => {
@@ -157,7 +164,8 @@ export default function usePosts(username?: string){
                 : p
             ),
         }));
-        })
+        }
+        )
         .catch((error) => {
         console.log(error);
         setState((prevState) => ({
@@ -174,6 +182,62 @@ export default function usePosts(username?: string){
         }));
     }, []);
 
+        const onComment = useCallback(
+        (postId: number, content: string) => {
+            api
+            .post<{ commentCount: number }>(`/posts/${postId}/comments`, {
+                content,
+            })
+            .then((response) => {
+                fetchPosts();
+            })
+            .catch((error) => {
+                console.log(error);
+                setState((prevState) => ({
+                ...prevState,
+                error:
+                    error.response?.data?.message ||
+                    "Failed to create comment",
+                }));
+            });
+        },
+        [fetchPosts]
+        );
+
+        const onDeleteComment = useCallback(
+        (commentId: number, postId: number) => {
+            api
+            .delete(`/posts/comments/${commentId}`)
+            .then(() => {
+                setState((prevState) => ({
+                ...prevState,
+                posts: prevState.posts.map((p) =>
+                    p.id === postId
+                    ? {
+                        ...p,
+                        counts: {
+                            ...p.counts,
+                            comments: p.counts.comments - 1,
+                        },
+                        ...('comments' in p ? {
+                            comments: p.comments.filter((c: any) => c.id !== commentId)
+                        } : {})
+                        }
+                    : p
+                ),
+                }));
+            })
+            .catch((error) => {
+                setState((prevState) => ({
+                ...prevState,
+                error: error.response?.data?.message || "Failed to delete comment",
+                }));
+            });
+        },
+        []
+        );
+
+
     useEffect(() => {
         fetchPosts();
     }, [fetchPosts]);
@@ -182,6 +246,8 @@ export default function usePosts(username?: string){
         ...state,
         fetchPosts,
         onCreate,
+        onComment,
+        onDeleteComment,
         onEdit,
         onDelete,
         onToggleLike,

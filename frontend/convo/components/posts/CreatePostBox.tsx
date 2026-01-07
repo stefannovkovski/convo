@@ -38,7 +38,8 @@ export default function CreatePostBox({ onCreate }: CreatePostBoxProps) {
       )}
 
       <Box sx={{ display: 'flex', gap: 1.5 }}>
-        <Avatar sx={{ width: 48, height: 48 }}src={`${process.env.NEXT_PUBLIC_API_URL}${getUser().avatar}`}>U</Avatar>
+        <Avatar sx={{ width: 48, height: 48 }}
+        src={`${process.env.NEXT_PUBLIC_API_URL}${getUser().avatar}`}></Avatar>
 
         <Box sx={{ flex: 1 }}>
           <TextField

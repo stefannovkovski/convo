@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards, UploadedFile, UseInterceptors, Delete } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/createPost.dto';
 import { PostResponseDto } from './dto/postResponse.dto';
@@ -13,12 +13,6 @@ import { extname } from 'path';
 export class PostsController {
 
     constructor(private readonly postService:PostsService){}
-
-    @Get('public')
-    @ApiOperation({ summary: 'Lists all posts (unauthenticated)' })
-    getPublicFeed() {
-        return this.postService.getPosts();
-    }
 
     @UseGuards(JwtAuthGuard)
     @Get('feed')
@@ -49,6 +43,13 @@ export class PostsController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('/:postId')
+    @ApiOperation({ summary: 'Get details for a post' })
+    getDetails(@Param('postId') postId: string, @Req() req,) {
+        return this.postService.getDetails(+postId,req.user.userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Post('/:postId/like')
     @ApiOperation({ summary: 'Like/Unlike a post' })
     toggleLike(@Param('postId') postId: string, @Req() req){
@@ -60,5 +61,19 @@ export class PostsController {
     @ApiOperation({ summary: 'Retweet/Remove retweet for post' })
     toggleRetweet(@Param('postId') postId: string, @Req() req){
         return this.postService.toggleRetweet(+postId, req.user.userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('/:postId/comments')
+    @ApiOperation({ summary: 'Create a comment on a post' })
+    createComment(@Param('postId') postId: string, @Body('content') content: string ,@Req() req,) {
+        return this.postService.createComment(+postId,req.user.userId,content);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete('/comments/:commentId')
+    @ApiOperation({ summary: 'Delete comment from post' })
+    deleteComment(@Param('commentId') commentId: string, @Req() req,) {
+        return this.postService.deleteComment(+commentId,req.user.userId);
     }
 }

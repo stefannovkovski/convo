@@ -97,9 +97,76 @@ export class UsersRepository {
                     }
                 }
             },
+            orderBy: {
+                createdAt: 'desc',
+            }
         });    
       }
 
+      async getMixedFeed(userId: number) {
+      const posts = await this.getUserPosts(userId);
+      const retweets = await this.prisma.retweet.findMany({
+              where: { userId: userId },
+              include: {
+                  user: {
+                      select: {
+                          id: true,
+                          name: true,
+                          username: true,
+                          avatar: true,
+                      },
+                  },
+                  post: {
+                      include: {
+                          author: {
+                              select: {
+                                  id: true,
+                                  name: true,
+                                  username: true,
+                                  avatar: true,
+                              },
+                          },
+                          quotedPost: {
+                              include: {
+                                  author: {
+                                      select: {
+                                          id: true,
+                                          name: true,
+                                          username: true,
+                                          avatar: true,
+                                      },
+                                  },
+                                  _count: {
+                                      select: {
+                                          likes: true,
+                                          comments: true,
+                                          retweets: true,
+                                      }
+                                  }
+                              }
+                          },
+                          _count: {
+                              select: {
+                                  likes: true,
+                                  comments: true,
+                                  retweets: true,
+                              }
+                          }
+                      }
+                  }
+              },
+          });
+          
+          const combined = [
+              ...posts.map(p => ({ ...p, type: 'post', sortDate: p.createdAt })),
+              ...retweets.map(r => ({ ...r, type: 'retweet', sortDate: r.createdAt}))
+          ];
+
+          combined.sort((a, b)=> b.sortDate.getTime() - a.sortDate.getTime());
+
+          return combined;
+  }
+  
   async checkFollow(followerId: number, followingId: number) {
     return await this.prisma.follow.findUnique({
         where: {

@@ -5,7 +5,7 @@ import CreatePostBox from '@/components/posts/CreatePostBox';
 import  usePosts  from '@/hooks/usePosts';
 
 export default function HomePage() {
-  const { posts, loading, error, onCreate, onToggleLike, onToggleRetweet, clearError } = usePosts();
+  const { posts, loading, error, onCreate, onComment, onToggleLike, onToggleRetweet, clearError } = usePosts();
 
 
   if (loading && posts.length === 0) {
@@ -55,11 +55,12 @@ export default function HomePage() {
         ) : (
           posts.map((post) => (
             <PostCard
-              key={post.id}
+              key={`${post.id}-${post.isRetweet ? post.retweetedBy?.id : 'post'}`}
               post={post}
               onToggleLike={onToggleLike}
               onToggleRetweet={onToggleRetweet}
               onCreate={onCreate}
+              onComment={onComment}
             />
           ))
         )}

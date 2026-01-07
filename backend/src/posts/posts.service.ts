@@ -1,37 +1,53 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PostRepository } from './posts.repository';
 import { CreatePostDto } from './dto/createPost.dto';
 import { PostResponseDto } from './dto/postResponse.dto';
+import { PostDetailsResponseDto } from './dto/postDetailsResponse.dto';
 
 @Injectable()
 export class PostsService {
 
     constructor(private readonly postRepository: PostRepository){}
 
-    async getPosts(userId?: number): Promise<PostResponseDto[]>{
-        const posts = await this.postRepository.getAllPosts();
-        
-        if(!userId){
-            return PostResponseDto.fromPosts(posts, false, false);
-        }
+    async getPosts(userId: number): Promise<PostResponseDto[]>{
+        const mixedFeed = await this.postRepository.getMixedFeed();
         
         const likedPosts = await this.postRepository.getUserLikedPostIds(userId);
         const retweetedPosts = await this.postRepository.getUserRetweetedPostIds(userId);
 
         const likedPostIdsSet = new Set(likedPosts);
         const retweetedPostIdsSet = new Set(retweetedPosts);
-        return PostResponseDto.fromPostsWithLikes(posts, likedPostIdsSet, retweetedPostIdsSet);
+        
+        return PostResponseDto.fromMixedFeed(mixedFeed, likedPostIdsSet, retweetedPostIdsSet);
     }
 
     async create(dto: CreatePostDto, imageUrl: string | undefined, userId: number): Promise<PostResponseDto> {
-    const post = await this.postRepository.createPost({
-        content: dto.content,
-        imageUrl,
-        authorId: userId,
-        quotedPostId: dto.quotedPostId,
-    });
+        const post = await this.postRepository.createPost({
+            content: dto.content,
+            imageUrl,
+            authorId: userId,
+            quotedPostId: dto.quotedPostId,
+        });
+        return PostResponseDto.fromPost(post, false);
+    }
 
-    return PostResponseDto.fromPost(post, false);
+    
+    async getDetails(postId: number,userId: number){
+        const post = await this.postRepository.getPostById(postId);
+        if (!post) {
+            throw new NotFoundException(`Post with id ${postId} not found`);
+        }
+        const likedPosts = await this.postRepository.getUserLikedPostIds(userId);
+        const retweetedPosts = await this.postRepository.getUserRetweetedPostIds(userId);
+
+        const likedPostIdsSet = new Set(likedPosts);
+        const retweetedPostIdsSet = new Set(retweetedPosts);
+        
+        return PostDetailsResponseDto.fromPostWithComments(
+            post,
+            likedPostIdsSet.has(postId),
+            retweetedPostIdsSet.has(postId)
+        );    
     }
 
     async toggleLike(postId: number, userId:number){
@@ -70,6 +86,28 @@ export class PostsService {
         };
     }
 
+    async createComment(postId: number,userId: number,content: string): Promise<{ commentCount: number }> {
+        const post = await this.postRepository.getPostById(postId);
+        if (!post) {
+            throw new NotFoundException('Post not found');
+        }
 
+        if (!content) {
+            throw new BadRequestException('Comment content is required');
+        }
 
+        await this.postRepository.createComment({
+            postId,
+            userId,
+            content,
+        });
+
+        const commentCount = await this.postRepository.countComments(postId);
+
+        return { commentCount };
+    }
+
+    async deleteComment(commentId: number, userId: number) {
+        await this.postRepository.deleteComment(commentId, userId);
+    }
 }

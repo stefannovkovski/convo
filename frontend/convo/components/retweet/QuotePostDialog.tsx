@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { PostResponseDto } from '@/types/post/PostResponseDto';
+import { getUser } from '@/lib/auth';
 
 interface QuotePostDialogProps {
   open: boolean;
@@ -53,7 +54,7 @@ export default function QuotePostDialog({ open, onClose, post, onCreate, }: Quot
       </DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
-          <Avatar sx={{ width: 48, height: 48 }} src="/default-avatar.png"></Avatar>
+          <Avatar sx={{ width: 48, height: 48 }}src={`${process.env.NEXT_PUBLIC_API_URL}${getUser().avatar}`}></Avatar>
           <Box sx={{ flex: 1 }}>
             <TextField
               fullWidth
@@ -83,7 +84,7 @@ export default function QuotePostDialog({ open, onClose, post, onCreate, }: Quot
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Avatar sx={{ width: 20, height: 20, fontSize: '0.75rem' }} src="/default-avatar.png">
+            <Avatar sx={{ width: 20, height: 20, fontSize: '0.75rem' }}src={`${process.env.NEXT_PUBLIC_API_URL}${post.author.avatar}`}>
               {post.author.name.charAt(0)}
             </Avatar>
             <Typography variant="caption" fontWeight={700}>
@@ -97,13 +98,13 @@ export default function QuotePostDialog({ open, onClose, post, onCreate, }: Quot
           {post.imageUrl && (
             <Box
               component="img"
-              src={post.imageUrl}
+              src={`${process.env.NEXT_PUBLIC_API_URL}${post.imageUrl}`}
               alt="Post image"
               sx={{
                 width: '100%',
                 borderRadius: 1,
                 mt: 1,
-                maxHeight: 200,
+                maxHeight: 400,
                 objectFit: 'cover',
               }}
             />

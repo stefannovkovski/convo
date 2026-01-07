@@ -56,7 +56,6 @@ export default function ProfileHeader({
         >
           <Avatar
             src={`${process.env.NEXT_PUBLIC_API_URL}${avatarUrl}`}
-            alt={name}
             sx={{
               width: 134,
               height: 134,

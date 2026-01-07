@@ -48,6 +48,68 @@ export class PostRepository {
             }
         });
     }
+    async getMixedFeed() {
+    const posts = await this.getAllPosts();
+    const retweets = await this.prisma.retweet.findMany({
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                    },
+                },
+                post: {
+                    include: {
+                        author: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                avatar: true,
+                            },
+                        },
+                        quotedPost: {
+                            include: {
+                                author: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        username: true,
+                                        avatar: true,
+                                    },
+                                },
+                                _count: {
+                                    select: {
+                                        likes: true,
+                                        comments: true,
+                                        retweets: true,
+                                    }
+                                }
+                            }
+                        },
+                        _count: {
+                            select: {
+                                likes: true,
+                                comments: true,
+                                retweets: true,
+                            }
+                        }
+                    }
+                }
+            },
+        });
+        
+        const combined = [
+            ...posts.map(p => ({ ...p, type: 'post', sortDate: p.createdAt })),
+            ...retweets.map(r => ({ ...r, type: 'retweet', sortDate: r.createdAt}))
+        ];
+
+        combined.sort((a, b)=> b.sortDate.getTime() - a.sortDate.getTime());
+
+        return combined;
+    }
 
     getPostById(postId: number) {
         return this.prisma.post.findUnique({
@@ -59,6 +121,19 @@ export class PostRepository {
                         name: true,
                         username: true,
                         avatar: true,
+                    },
+                },
+                comments: {
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                    user: {
+                        select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                        },
+                    },
                     },
                 },
                 quotedPost: {
@@ -216,57 +291,21 @@ export class PostRepository {
         }).then(retweets => retweets.map(retweet => retweet.postId));
     }
 
-    async getUserSimpleRetweets(userId: number) {
-        return this.prisma.retweet.findMany({
-            where: { userId },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                        avatar: true,
-                    },
-                },
-                post: {
-                    include: {
-                        author: {
-                            select: {
-                                id: true,
-                                name: true,
-                                username: true,
-                                avatar: true,
-                            },
-                        },
-                        quotedPost: {
-                            include: {
-                                author: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        username: true,
-                                        avatar: true,
-                                    },
-                                },
-                                _count: {
-                                    select: {
-                                        likes: true,
-                                        comments: true,
-                                        retweets: true,
-                                    }
-                                }
-                            }
-                        },
-                        _count: {
-                            select: {
-                                likes: true,
-                                comments: true,
-                                retweets: true,
-                            }
-                        }
-                    }
-                }
-            },
+    async createComment(data: {postId: number;userId: number;content: string;}) {
+        return this.prisma.comment.create({
+            data,
+        });
+    }
+
+    async countComments(postId: number): Promise<number> {
+    return this.prisma.comment.count({
+        where: { postId },
+    });
+    }
+
+    async deleteComment(commentId:number, userId: number){
+        return this.prisma.comment.deleteMany({
+            where: { id: commentId, userId },
         });
     }
 }
