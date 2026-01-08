@@ -308,4 +308,53 @@ export class PostRepository {
             where: { id: commentId, userId },
         });
     }
+
+    async updatePost(postId: number, data: Partial<{ content: string; imageUrl: string }>) {
+    return this.prisma.post.update({
+        where: { id: postId },
+        data,
+        include: {
+            author: {
+                select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                    avatar: true,
+                },
+            },
+            quotedPost: {
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            avatar: true,
+                        },
+                    },
+                    _count: {
+                        select: {
+                            likes: true,
+                            comments: true,
+                            retweets: true,
+                        }
+                    }
+                }
+            },
+            _count: {
+                select: {
+                    likes: true,
+                    comments: true,
+                    retweets: true,
+                }
+            }
+        },
+    });
+}
+
+async deletePost(postId: number) {
+    return this.prisma.post.delete({
+        where: { id: postId },
+    });
+}
 }

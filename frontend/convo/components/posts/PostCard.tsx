@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { Box, Avatar, Typography, IconButton, Card, Link } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -14,6 +14,9 @@ import QuotePostDialog from '../retweet/QuotePostDialog';
 import CommentDialog from '../comment/CommentDialog';
 import { getUser } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import PostOptionsMenu from './PostOptionsMenu';
+import EditPostDialog from './EditPostDialog';
+import DeletePostDialog from './DeletePostDialog';
 
 interface PostCardProps {
   post: PostResponseDto;
@@ -21,12 +24,17 @@ interface PostCardProps {
   onToggleRetweet: (postId: number) => void;
   onCreate: (data: { content: string; quotedPostId?: number }) => void;
   onComment: (postId: number,  content: string ) => void;
+  onEdit: (postId: number, data: { content: string }) => void;
+  onDelete: (postId: number) => void;
 }
 
-export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate, onComment }: PostCardProps) {
+export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate, onComment, onEdit, onDelete }: PostCardProps) {
   const [retweetMenuAnchor, setRetweetMenuAnchor] = useState<null | HTMLElement>(null);
+  const [optionsMenuAnchor, setOptionsMenuAnchor] = useState<null | HTMLElement>(null);
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const router = useRouter();
 
   const handleRetweetClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -48,6 +56,35 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
 
   const handleNavigate = () => {
     router.push(`/dashboard/${post.author.username}/status/${post.id}`)
+  }
+
+  const handleQuoteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    handleQuoteNavigate();
+  }
+  const handleQuoteNavigate = () => {
+    router.push(`/dashboard/${post.quotedPost?.author.username}/status/${post.quotedPost?.id}`)
+  }
+
+  const handleOptionsClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setOptionsMenuAnchor(e.currentTarget);
+  }
+
+  const handleOptionsClose = () => {
+    setOptionsMenuAnchor(null);
+  }
+
+  const handleOpenEditDialog = () => {
+    setEditDialogOpen(true);
+  }
+
+  const handleOpenDeleteDialog = () => {
+    setDeleteDialogOpen(true);
+  }
+
+  const handleDeleteConfirm = () => {
+    onDelete(post.id);
   }
 
   return (
@@ -104,9 +141,9 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
               <Typography variant="body2" color="text.secondary">
                 · {formatDate(post.createdAt)}
               </Typography>
-              {getUser().username === post.author.username && (
+              {getUser().username === post.author.username && !post.isRetweet && (
                 <Box sx={{ ml: 'auto' }}>
-                  <IconButton size="small">
+                  <IconButton size="small" onClick={handleOptionsClick}>
                     <MoreHorizIcon fontSize="small" />
                   </IconButton>
                 </Box>
@@ -147,10 +184,10 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }} onClick={handleQuoteClick}>
                   <Avatar 
                     sx={{ width: 20, height: 20, fontSize: '0.75rem' }}
-                    src={`http://localhost:3001${post.quotedPost.author.avatar}`}
+                    src={`${process.env.NEXT_PUBLIC_API_URL}${post.quotedPost.author.avatar}`}
                   >
                     {post.quotedPost.author.name.charAt(0)}
                   </Avatar>
@@ -165,7 +202,7 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                 {post.quotedPost?.imageUrl && (
                   <Box
                     component="img"
-                    src={`http://localhost:3001${post.quotedPost?.imageUrl}`}
+                    src={`${process.env.NEXT_PUBLIC_API_URL}${post.quotedPost?.imageUrl}`}
                     alt="Post image"
                     sx={{
                       width: '100%',
@@ -256,6 +293,14 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
         isRetweeted={post.isRetweetedByMe}
       />
 
+      <PostOptionsMenu
+        anchorEl={optionsMenuAnchor}
+        open={Boolean(optionsMenuAnchor)}
+        onClose={handleOptionsClose}
+        onEdit={handleOpenEditDialog}
+        onDelete={handleOpenDeleteDialog}
+      />
+
       <QuotePostDialog
         open={quoteDialogOpen}
         onClose={() => setQuoteDialogOpen(false)}
@@ -268,6 +313,19 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
         postId={post.id}
         onClose={() => setCommentDialogOpen(false)}
         onComment={onComment}
+      />
+
+      <EditPostDialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        post={post}
+        onEdit={onEdit}
+      />
+
+      <DeletePostDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
       />
     </>
   );

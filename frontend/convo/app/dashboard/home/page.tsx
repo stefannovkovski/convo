@@ -5,7 +5,7 @@ import CreatePostBox from '@/components/posts/CreatePostBox';
 import  usePosts  from '@/hooks/usePosts';
 
 export default function HomePage() {
-  const { posts, loading, error, onCreate, onComment, onToggleLike, onToggleRetweet, clearError } = usePosts();
+  const { posts, loading, error, onCreate, onComment, onEdit, onDelete, onToggleLike, onToggleRetweet, clearError } = usePosts();
 
 
   if (loading && posts.length === 0) {
@@ -61,6 +61,8 @@ export default function HomePage() {
               onToggleRetweet={onToggleRetweet}
               onCreate={onCreate}
               onComment={onComment}
+              onEdit={onEdit}
+              onDelete={onDelete}
             />
           ))
         )}

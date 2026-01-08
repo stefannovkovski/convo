@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards, UploadedFile, UseInterceptors, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards, UploadedFile, UseInterceptors, Delete, Patch } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/createPost.dto';
 import { PostResponseDto } from './dto/postResponse.dto';
@@ -75,5 +75,19 @@ export class PostsController {
     @ApiOperation({ summary: 'Delete comment from post' })
     deleteComment(@Param('commentId') commentId: string, @Req() req,) {
         return this.postService.deleteComment(+commentId,req.user.userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Patch('/:postId')
+    @ApiOperation({ summary: 'Edit a post' })
+    editPost(@Param('postId') postId: string, @Body() dto: Partial<CreatePostDto>, @Req() req) {
+        return this.postService.editPost(+postId, req.user.userId, dto);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete('/:postId')
+    @ApiOperation({ summary: 'Delete a post' })
+    deletePost(@Param('postId') postId: string, @Req() req) {
+        return this.postService.deletePost(+postId, req.user.userId);
     }
 }

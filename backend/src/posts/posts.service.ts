@@ -110,4 +110,34 @@ export class PostsService {
     async deleteComment(commentId: number, userId: number) {
         await this.postRepository.deleteComment(commentId, userId);
     }
+
+    async editPost(postId: number, userId: number, dto: Partial<CreatePostDto>) {
+    const post = await this.postRepository.getPostById(postId);
+    
+    if (!post) {
+        throw new NotFoundException(`Post with id ${postId} not found`);
+    }
+
+    if (post.authorId !== userId) {
+        throw new BadRequestException('You can only edit your own posts');
+    }
+
+    return this.postRepository.updatePost(postId, dto);
+    }
+
+    async deletePost(postId: number, userId: number) {
+        const post = await this.postRepository.getPostById(postId);
+        
+        if (!post) {
+            throw new NotFoundException(`Post with id ${postId} not found`);
+        }
+
+        if (post.authorId !== userId) {
+            throw new BadRequestException('You can only delete your own posts');
+        }
+
+        await this.postRepository.deletePost(postId);
+        
+        return { message: 'Post deleted successfully' };
+    }
 }
