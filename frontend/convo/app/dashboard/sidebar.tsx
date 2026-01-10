@@ -39,8 +39,7 @@ export default function Sidebar() {
 
   const menuItems = [
     { icon: <HomeIcon />, label: 'Home', path: '/dashboard/home' },
-    { icon: <SearchIcon />, label: 'Explore', path: '/explore' },
-    { icon: <NotificationsIcon />, label: 'Notifications', path: '/notifications' },
+    { icon: <SearchIcon />, label: 'Explore', path: '/dashboard/explore' },
     { icon: <PersonIcon />, label: 'Profile',   path: user ? `/dashboard/${user.username}` : '/login', },
   ];
 

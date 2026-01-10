@@ -1,13 +1,16 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PostResponseDto } from "src/posts/dto/postResponse.dto";
 import { UsersRepository } from "./user.repository";
-import { PostRepository } from "src/posts/posts.repository";
-
+import { LikesRepository } from "src/posts/repos/likes.repository";
+import { RetweetsRepository } from "src/posts/repos/retweets.repository";
+import { FeedRepository } from "src/posts/repos/feed.repository";
 @Injectable()
 export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly postRepository: PostRepository,
+    private readonly likesRepository: LikesRepository,
+    private readonly retweetsRepository: RetweetsRepository,
+    private readonly feedRepository: FeedRepository,
   ) {}
 
   async findById(userId: number) {
@@ -19,7 +22,8 @@ export class UsersService {
 
     return this.sanitizeUser(user, true);
   }
-    private sanitizeUser(user: any, includeIsMe: boolean = false) {
+
+  private sanitizeUser(user: any, includeIsMe: boolean = false) {
     const { password, ...sanitizedUser } = user;
 
     const result: any = {
@@ -33,6 +37,20 @@ export class UsersService {
 
     return result;
   }
+  
+  async searchUsers(query: string, currentUserId: number) {
+    const users = await this.usersRepository.searchUsers(query, currentUserId);
+
+    return users.map(user => ({
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      avatar: user.avatar,
+      bio: user.bio,
+      isFollowedByMe: user.followers && user.followers.length > 0,
+      followersCount: user._count.followers,
+    }));
+  }
 
   async findUserPosts(username: string, userId: number) {
     const user = await this.usersRepository.findByUsername(username);
@@ -43,15 +61,21 @@ export class UsersService {
 
     const posts = await this.usersRepository.getMixedFeed(user.id);
 
-    const likedPosts = await this.postRepository.getUserLikedPostIds(userId);
-    const retweetedPosts = await this.postRepository.getUserRetweetedPostIds(userId);
+    const likedPosts = await this.likesRepository.getUserLikedPostIds(userId);
+    const retweetedPosts = await this.retweetsRepository.getUserRetweetedPostIds(userId);
 
-    return PostResponseDto.fromMixedFeed( posts, new Set(likedPosts), new Set(retweetedPosts),);
+    return PostResponseDto.fromMixedFeed(
+      posts,
+      new Set(likedPosts),
+      new Set(retweetedPosts)
+    );
   }
 
   async getDetails(username: string, loggedInUserId: number) {
-    const user =
-      await this.usersRepository.findByUsernameWithFollowCheck( username, loggedInUserId,);
+    const user = await this.usersRepository.findByUsernameWithFollowCheck(
+      username,
+      loggedInUserId
+    );
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -77,7 +101,7 @@ export class UsersService {
     };
   }
 
-  async toggleFollow(username: string, followerId: number){
+  async toggleFollow(username: string, followerId: number) {
     const userToFollow = await this.usersRepository.findByUsername(username);
   
     if (!userToFollow) {
@@ -88,9 +112,12 @@ export class UsersService {
       throw new ConflictException('You cannot follow yourself');
     }
 
-    const existingFollow = await this.usersRepository.checkFollow(followerId,userToFollow.id,);
+    const existingFollow = await this.usersRepository.checkFollow(
+      followerId,
+      userToFollow.id
+    );
     
-    if(existingFollow){
+    if (existingFollow) {
       await this.usersRepository.unfollow(followerId, userToFollow.id);
       return { isFollowing: false };
     } else {
@@ -119,6 +146,4 @@ export class UsersService {
 
     return this.sanitizeUser(updatedUser, true);
   }
-
-
 }

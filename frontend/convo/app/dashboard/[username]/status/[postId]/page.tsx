@@ -11,7 +11,7 @@ import { useParams, useRouter } from "next/navigation";
 export default function PostDetailsPage() {
     const router = useRouter();
     const { postId } = useParams();
-    const { posts, loading, error, onComment, onDeleteComment, onToggleLike, onToggleRetweet, onCreate} = usePosts({ postId: Number(postId)});
+    const { posts, loading, error, onComment, onDeleteComment, onToggleLike, onToggleRetweet, onCreate, onEdit, onDelete} = usePosts({ postId: Number(postId)});
 
     if (loading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -50,6 +50,8 @@ export default function PostDetailsPage() {
           onToggleRetweet={onToggleRetweet}
           onCreate={onCreate}
           onComment={onComment}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       </Box>
 

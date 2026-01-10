@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Body,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -29,6 +30,14 @@ export class UsersController {
   getCurrentUser(@Req() req) {
     return this.usersService.findById(req.user.userId);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('search')
+  @ApiOperation({ summary: 'Search users by username or name' })
+  searchUsers(@Query('q') query: string, @Req() req) {
+    return this.usersService.searchUsers(query, req.user.userId);
+  }
+
 
   @UseGuards(JwtAuthGuard)
   @Get('/details/:username')

@@ -20,6 +20,57 @@ export class UsersRepository {
     });
   }
 
+  async searchUsers(query: string, currentUserId: number) {
+    return this.prisma.user.findMany({
+      where: {
+        AND: [
+          {
+            id: {
+              not: currentUserId
+            }
+          },
+          {
+            OR: [
+              {
+                username: {
+                  contains: query,
+                  mode: 'insensitive'
+                }
+              },
+              {
+                name: {
+                  contains: query,
+                  mode: 'insensitive'
+                }
+              }
+            ]
+          }
+        ]
+      },
+      include: {
+        followers: {
+          where: {
+            followerId: currentUserId
+          },
+          select: {
+            id: true
+          }
+        },
+        _count: {
+          select: {
+            followers: true,
+          }
+        }
+      },
+      take: 20,
+      orderBy: {
+        followers: {
+          _count: 'desc'
+        }
+      }
+    });
+  }
+
   async findByUsername(username: string) {
     return this.prisma.user.findUnique({
       where: {username},

@@ -9,7 +9,7 @@ import ProfileHeader from '@/components/profile/ProfileHeader';
 export default function ProfilePage() {
   const { username } = useParams();
 
-  const { posts, loading, onCreate, onComment, onToggleLike, onToggleRetweet } = usePosts({username: username as string});
+  const { posts, loading, onCreate, onComment, onEdit, onDelete, onToggleLike, onToggleRetweet } = usePosts({username: username as string});
   const { user, loading: profileLoading, toggleFollow, updateProfile } = useAuth(username as string);
 
   if (profileLoading) return null;
@@ -34,12 +34,14 @@ export default function ProfilePage() {
 
       {posts.map(post => (
         <PostCard
-          key={post.id}
+          key={`${post.id}-${post.isRetweet ? post.retweetedBy?.id : 'post'}`}
           post={post}
           onToggleLike={onToggleLike}
           onToggleRetweet={onToggleRetweet}
           onCreate={onCreate}
           onComment={onComment}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       ))}
     </>
