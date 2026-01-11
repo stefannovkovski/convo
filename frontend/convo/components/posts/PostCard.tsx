@@ -184,7 +184,20 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                   },
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }} onClick={handleQuoteClick}>
+                  <Box 
+                    component="button"
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1, 
+                      mb: 0.5,
+                      border: 'none',
+                      background: 'none',
+                      padding: 0,
+                      cursor: 'pointer'
+                    }} 
+                    onClick={handleQuoteClick}
+                  >
                   <Avatar 
                     sx={{ width: 20, height: 20, fontSize: '0.75rem' }}
                     src={`${process.env.NEXT_PUBLIC_API_URL}${post.quotedPost.author.avatar}`}

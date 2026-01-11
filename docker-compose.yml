@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15
@@ -5,11 +7,52 @@ services:
     environment:
       POSTGRES_USER: convo
       POSTGRES_PASSWORD: convo
-      POSTGRES_DB: convo_db
+      POSTGRES_DB: convo
     ports:
-      - "5433:5432"  
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U convo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: convo_backend
+    environment:
+      DATABASE_URL: "postgresql://convo:convo@db:5432/convo"
+      JWT_SECRET: "ihsWIU2Rcnv6s6JfqVigaacJZ0lqIQoW"
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/uploads:/app/uploads
+    command: >
+        sh -c "npx prisma migrate deploy && npm run start:dev"
+  frontend:
+    build:
+      context: ./frontend/convo
+      dockerfile: Dockerfile
+    container_name: convo_frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/convo:/app
+      - /app/node_modules
+      - /app/.next
 
 volumes:
   postgres_data:
