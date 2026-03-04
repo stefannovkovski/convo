@@ -7,6 +7,8 @@ import { LikesRepository } from './repos/likes.repository';
 import { RetweetsRepository } from './repos/retweets.repository';
 import { CommentsRepository } from './repos/comments.repository';
 import { FeedRepository } from './repos/feed.repository';
+import { FirebaseService } from '../firebase/firebase.service';
+import { UsersRepository } from 'src/user/user.repository';
 
 @Injectable()
 export class PostsService {
@@ -15,7 +17,9 @@ export class PostsService {
         private readonly likesRepository: LikesRepository,
         private readonly retweetsRepository: RetweetsRepository,
         private readonly commentsRepository: CommentsRepository,
-        private readonly feedRepository: FeedRepository
+        private readonly feedRepository: FeedRepository,
+        private readonly firebaseService: FirebaseService,
+        private readonly usersRepository: UsersRepository,
     ) {}
 
     async getPosts(userId: number): Promise<PostResponseDto[]> {
@@ -66,6 +70,16 @@ export class PostsService {
             await this.likesRepository.deleteLike(userId, postId);
         } else {
             await this.likesRepository.createLike({ userId, postId });
+            const post = await this.postRepository.getPostById(postId);
+            const user = await this.usersRepository.findById(userId);
+            if (post && post.authorId !== userId && this.firebaseService.isInitialized() && user) {
+                await this.firebaseService.createNotification(post.authorId, {
+                    type: 'like',
+                    title: 'New like',
+                    body: `${user.name} (@${user.username}) liked your post`,
+                    link: `/dashboard/${post.author.username}/status/${postId}`,
+                });
+            }
         }
 
         const likeCount = await this.likesRepository.getLikeCount(postId);

@@ -4,6 +4,8 @@ import { UsersRepository } from "./user.repository";
 import { LikesRepository } from "src/posts/repos/likes.repository";
 import { RetweetsRepository } from "src/posts/repos/retweets.repository";
 import { FeedRepository } from "src/posts/repos/feed.repository";
+import { FirebaseService } from "../firebase/firebase.service";
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -11,6 +13,7 @@ export class UsersService {
     private readonly likesRepository: LikesRepository,
     private readonly retweetsRepository: RetweetsRepository,
     private readonly feedRepository: FeedRepository,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async findById(userId: number) {
@@ -122,6 +125,20 @@ export class UsersService {
       return { isFollowing: false };
     } else {
       await this.usersRepository.follow(followerId, userToFollow.id);
+      if (this.firebaseService.isInitialized()) {
+        const follower = await this.usersRepository.findById(followerId);
+        if (follower) {
+          await this.firebaseService.createNotification(userToFollow.id, {
+            type: 'follow',
+            title: 'New follower',
+            body: `${follower.name} (@${follower.username}) started following you`,
+            link: `/dashboard/${follower.username}`,
+            actorId: followerId,
+            actorUsername: follower.username,
+            actorName: follower.name,
+          });
+        }
+      }
       return { isFollowing: true };
     }
   }

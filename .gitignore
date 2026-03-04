@@ -1,0 +1,96 @@
+# ====================
+# Backend
+# ====================
+
+# compiled output
+/backend/dist
+/backend/node_modules
+/backend/build
+
+# dotenv environment variable files
+/backend/.env
+/backend/.env.development.local
+/backend/.env.test.local
+/backend/.env.production.local
+/backend/.env.local
+
+# Firebase service account keys
+/backend/firebase-service-account.json
+/backend/*-firebase-adminsdk-*.json
+
+# Prisma generated files
+/backend/generated/prisma
+
+# Logs
+/backend/logs
+/backend/*.log
+/backend/npm-debug.log*
+/backend/pnpm-debug.log*
+/backend/yarn-debug.log*
+/backend/yarn-error.log*
+/backend/lerna-debug.log*
+
+# Runtime data
+/backend/pids
+/backend/*.pid
+/backend/*.seed
+/backend/*.pid.lock
+
+# Temp files
+/backend/.temp
+/backend/.tmp
+
+# Diagnostic reports
+/backend/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Tests
+/backend/coverage
+/backend/.nyc_output
+
+# IDEs and editors
+/backend/.idea
+/backend/.project
+/backend/.classpath
+/backend/.c9/
+/backend/*.launch
+/backend/.settings/
+/backend/*.sublime-workspace
+
+# VSCode specific
+/backend/.vscode/*
+!/backend/.vscode/settings.json
+!/backend/.vscode/tasks.json
+!/backend/.vscode/launch.json
+!/backend/.vscode/extensions.json
+
+
+# ====================
+# Frontend (Next.js / React)
+# ====================
+
+# Node modules
+/frontend/convo/node_modules/
+
+# Next.js build output
+/frontend/convo/.next/
+/frontend/convo/out/
+
+# Env files
+/frontend/convo/.env
+/frontend/convo/.env.local
+/frontend/convo/.env.development.local
+/frontend/convo/.env.production.local
+/frontend/convo/.env.test.local
+
+# Firebase service account keys
+/frontend/convo/firebase-service-account.json
+/frontend/convo/*-firebase-adminsdk-*.json
+
+# Logs
+/frontend/convo/*.log
+
+# OS
+/frontend/convo/.DS_Store
+
+# VSCode (optional, if you have frontend VSCode configs)
+!/frontend/convo/.vscode/settings.json

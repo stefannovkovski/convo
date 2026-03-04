@@ -2,7 +2,6 @@
 import { Box, List, ListItemButton, ListItemIcon, ListItemText, Avatar, Button, Typography, IconButton, useTheme, Skeleton } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import SearchIcon from '@mui/icons-material/Search';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
 import { useRouter } from 'next/navigation';
 import { useThemeContext } from '@/theme/themeContext';
@@ -15,12 +14,14 @@ import { useAuth } from '@/hooks/useUser';
 import { logout } from '@/lib/auth';
 import LogoutIcon from '@mui/icons-material/Logout';
 import usePosts from '@/hooks/usePosts';
+import NotificationPanel from '@/components/notifications/NotificationPanel';
 
 
 
 export default function Sidebar() {
   const router = useRouter();
   const [postOpen, setPostOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { user, loading } = useAuth();
   const { onCreate } = usePosts(); 
 
@@ -96,6 +97,11 @@ export default function Sidebar() {
             />
           </ListItemButton>
         ))}
+        <NotificationPanel
+          userId={user?.id ?? null}
+          expanded={notificationsOpen}
+          onToggle={() => setNotificationsOpen((o) => !o)}
+        />
       </List>
 
       <Button
