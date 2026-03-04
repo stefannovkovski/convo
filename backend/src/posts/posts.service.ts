@@ -10,6 +10,10 @@ import { FeedRepository } from './repos/feed.repository';
 import { FirebaseService } from '../firebase/firebase.service';
 import { UsersRepository } from 'src/user/user.repository';
 
+const CROK_USERNAME = 'crok';
+const CROK_MENTION_REGEX = /@[Cc]rok\b/;
+
+
 @Injectable()
 export class PostsService {
     constructor(
@@ -41,9 +45,78 @@ export class PostsService {
             authorId: userId,
             quotedPostId: dto.quotedPostId,
         });
+
+        if (CROK_MENTION_REGEX.test(post.content)) {
+            this.handleCrokMention(post.id, dto.content, userId).catch(err =>
+                console.error('Error handling Crok mention:', err)
+            );
+        }
         return PostResponseDto.fromPost(post, false);
     }
 
+    private async handleCrokMention(postId: number, content: string, userId: number): Promise<void> {
+        const crokUser = await this.usersRepository.findByUsername(CROK_USERNAME);
+        const user = await this.usersRepository.findById(userId);
+        if (!crokUser) {
+            console.warn('[Crok] Bot user not found in DB — create a user with username "crok"');
+            return;
+        }
+
+        const geminiReply = await this.callGeminiApi(content, user?.username ?? '');
+        if (!geminiReply) return;
+        
+        await this.commentsRepository.createComment({
+            postId,
+            userId: crokUser.id,
+            content: geminiReply,
+        })
+    }
+
+        private async callGeminiApi(postContent: string, username: string): Promise<string | null> {
+            const apiKey = process.env.GEMINI_API_KEY;
+            if (!apiKey) {
+            console.error('[Crok] GEMINI_API_KEY env variable is not set');
+            return null;
+        }
+    
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`;
+
+        const body = {
+            contents: [
+                {
+                    role: 'user',
+                    parts: [
+                        {
+                            text: `You are Crok, a witty AI living inside a social media platform. 
+    @ ${username} mentioned you. Reply as a comment — keep it 1-3 sentences, casual and engaging.
+    User's post: "${postContent}"`,
+                        },
+                    ],
+                },
+            ],
+            generationConfig: {
+                temperature: 0.9,
+                maxOutputTokens: 800,
+            },
+        };
+    
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey, 
+            },
+            body: JSON.stringify(body),
+        });
+    
+        if (!response.ok) {
+            console.error('[Crok] Gemini API error:', await response.text());
+            return null;
+        }
+    
+        const data = await response.json();
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+    }
     async getDetails(postId: number, userId: number) {
         const post = await this.postRepository.getPostById(postId);
         if (!post) {
