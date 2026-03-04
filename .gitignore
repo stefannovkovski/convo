@@ -94,3 +94,6 @@
 
 # VSCode (optional, if you have frontend VSCode configs)
 !/frontend/convo/.vscode/settings.json
+
+/package-lock.json.DS_Store
+.DS_Store

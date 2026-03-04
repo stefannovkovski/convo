@@ -160,7 +160,6 @@ export class PostsService {
         }
 
         await this.postRepository.deletePost(postId);
-        
         return { message: 'Post deleted successfully' };
     }
 }
