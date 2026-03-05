@@ -9,6 +9,7 @@ import { CommentsRepository } from './repos/comments.repository';
 import { FeedRepository } from './repos/feed.repository';
 import { FirebaseService } from '../firebase/firebase.service';
 import { UsersRepository } from 'src/user/user.repository';
+import { HashtagsRepository } from './repos/hashtags.repository';
 
 const CROK_USERNAME = 'crok';
 const CROK_MENTION_REGEX = /@[Cc]rok\b/;
@@ -24,6 +25,7 @@ export class PostsService {
         private readonly feedRepository: FeedRepository,
         private readonly firebaseService: FirebaseService,
         private readonly usersRepository: UsersRepository,
+        private readonly hashtagRepository: HashtagsRepository,
     ) {}
 
     async getPosts(userId: number): Promise<PostResponseDto[]> {
@@ -45,6 +47,10 @@ export class PostsService {
             authorId: userId,
             quotedPostId: dto.quotedPostId,
         });
+
+        if(dto.content.includes('#')) {
+            await this.hashtagRepository.saveHashtagsForPost(post.id, dto.content);
+        }
 
         if (CROK_MENTION_REGEX.test(post.content)) {
             this.handleCrokMention(post.id, dto.content, userId).catch(err =>
@@ -234,5 +240,9 @@ export class PostsService {
 
         await this.postRepository.deletePost(postId);
         return { message: 'Post deleted successfully' };
+    }
+
+    async getTrending(): Promise<{ tag: string; count: number}[]> {
+        return this.hashtagRepository.getTrending(3);
     }
 }

@@ -7,6 +7,7 @@ import { RetweetsRepository } from './repos/retweets.repository';
 import { CommentsRepository } from './repos/comments.repository';
 import { FeedRepository } from './repos/feed.repository';
 import { UsersRepository } from 'src/user/user.repository';
+import { HashtagsRepository } from './repos/hashtags.repository';
 
 @Module({
   controllers: [PostsController],
@@ -18,6 +19,7 @@ import { UsersRepository } from 'src/user/user.repository';
     CommentsRepository,
     FeedRepository,
     UsersRepository,
+    HashtagsRepository,
   ],
   exports: [
     PostRepository,

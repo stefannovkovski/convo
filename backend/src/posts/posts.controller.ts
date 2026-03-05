@@ -22,6 +22,13 @@ export class PostsController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('trending')
+    @ApiOperation({ summary: 'Get the trending for the last 24h' })
+    getTrending() {
+        return this.postService.getTrending();
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Post()
     @UseInterceptors(
         FileInterceptor('image', {
@@ -90,4 +97,5 @@ export class PostsController {
     deletePost(@Param('postId') postId: string, @Req() req) {
         return this.postService.deletePost(+postId, req.user.userId);
     }
+
 }

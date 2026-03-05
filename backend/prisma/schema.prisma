@@ -37,6 +37,7 @@ model Post {
   likes     Like[]
   retweets  Retweet[]
   comments  Comment[]
+  hashtags   PostHashtag[]
   
   quotedPostId Int?
   quotedPost   Post?  @relation("QuoteTweets", fields: [quotedPostId], references: [id], onDelete: Cascade)
@@ -45,6 +46,19 @@ model Post {
   @@index([authorId])
   @@index([createdAt])
   @@index([quotedPostId])
+}
+
+model PostHashtag {
+  id        Int @id @default(autoincrement())
+  tag       String
+  createdAt DateTime @default(now())
+
+  postId Int
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([tag])
+  @@index([createdAt])
+  @@index([postId])
 }
 
 model Retweet {
