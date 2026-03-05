@@ -10,7 +10,7 @@ const initialState = {
     error: null as string | null,
 }
 
-export default function usePosts(params?: {username?: string; postId?: number}){
+export default function usePosts(params?: { username?: string; postId?: number; hashtag?: string }){
     const [state, setState] = useState(initialState);
     type PostDto = PostResponseDto | PostDetailsResponseDto;
 
@@ -18,6 +18,8 @@ export default function usePosts(params?: {username?: string; postId?: number}){
     ? `/posts/${params.postId}`
     : params?.username
         ? `/users/${params.username}`
+        : params?.hashtag
+            ? `/posts/hashtag/${encodeURIComponent(params.hashtag)}`
         : '/posts/feed';
         
     const fetchPosts = useCallback(() => {
@@ -40,7 +42,7 @@ export default function usePosts(params?: {username?: string; postId?: number}){
             error: error.response?.data?.message || "Failed to fetch posts",
             });        
         })
-    }, []);
+    }, [url]);
 
     const onCreate = useCallback((data: FormData | { content: string; imageUrl?: string } ) => {
         if (data instanceof FormData) {
@@ -50,6 +52,7 @@ export default function usePosts(params?: {username?: string; postId?: number}){
             .then(() => {
                 console.log("Successfully created a new post.");
                 fetchPosts();
+                window.dispatchEvent(new CustomEvent('post-created'));
             })
             .catch((error) => {
                 console.log(error);
@@ -63,6 +66,7 @@ export default function usePosts(params?: {username?: string; postId?: number}){
             .then(() => {
                 console.log("Successfully created a new post.");
                 fetchPosts();
+                window.dispatchEvent(new CustomEvent('post-created'));
             })
             .catch((error) => {
                 console.log(error);

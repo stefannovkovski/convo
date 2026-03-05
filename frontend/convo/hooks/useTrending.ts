@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { api } from "@/services/Api";
+import { useEffect, useState } from 'react';
+import { api } from '@/services/Api';
 
 interface TrendingHashtag {
     tag: string;
@@ -10,13 +10,19 @@ export function useTrending() {
     const [trending, setTrending] = useState<TrendingHashtag[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const fetchTrending = () => {
         api.get('/posts/trending')
-        .then(res => setTrending(res.data))
-        .catch(err => console.error('Failed to fetch trending:', err))
-        .finally(() => setLoading(false));
-    
+            .then(res => setTrending(res.data))
+            .catch(err => console.error('Failed to fetch trending:', err))
+            .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchTrending();
+
+        window.addEventListener('post-created', fetchTrending);
+        return () => window.removeEventListener('post-created', fetchTrending);
     }, []);
-    
-    return { trending, loading};
+
+    return { trending, loading };
 }

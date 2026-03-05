@@ -29,6 +29,13 @@ export class PostsController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Get('hashtag/:tag')
+    @ApiOperation({ summary: 'Get posts for a hashtag' })
+    getPostsByHashtag(@Param('tag') tag: string, @Req() req) {
+        return this.postService.getPostsByHashtag(tag, req.user.userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Post()
     @UseInterceptors(
         FileInterceptor('image', {

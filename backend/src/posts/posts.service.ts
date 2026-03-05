@@ -245,4 +245,16 @@ export class PostsService {
     async getTrending(): Promise<{ tag: string; count: number}[]> {
         return this.hashtagRepository.getTrending(3);
     }
+
+    async getPostsByHashtag(tag: string, userId: number): Promise<PostResponseDto[]> {
+        const normalizedTag = tag.startsWith('#') ? tag.toLowerCase() : `#${tag.toLowerCase()}`;
+        const posts = await this.hashtagRepository.getPostsByTag(normalizedTag);
+        const likedPosts = await this.likesRepository.getUserLikedPostIds(userId);
+        const retweetedPosts = await this.retweetsRepository.getUserRetweetedPostIds(userId);
+
+        const likedPostIdsSet = new Set(likedPosts);
+        const retweetedPostIdsSet = new Set(retweetedPosts);
+
+        return PostResponseDto.fromPostsWithLikes(posts, likedPostIdsSet, retweetedPostIdsSet);
+    }
 }

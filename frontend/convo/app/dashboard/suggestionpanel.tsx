@@ -2,9 +2,11 @@
 import { Box, Typography, Card, Skeleton } from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useTrending } from '@/hooks/useTrending';
+import { useRouter } from 'next/navigation';
 
 export default function SuggestionsPanel() {
     const { trending, loading } = useTrending();
+    const router = useRouter();
 
     return (
         <Box sx={{ pt: 2, pr: 2 }}>
@@ -32,11 +34,20 @@ export default function SuggestionsPanel() {
                     trending.map((item, index) => (
                         <Box
                             key={item.tag}
+                            onClick={() =>
+                                router.push(`/dashboard/hashtag/${encodeURIComponent(item.tag.replace(/^#/, ''))}`)
+                            }
                             sx={{
                                 mb: 2,
                                 pb: 2,
                                 borderBottom: index < trending.length - 1 ? 1 : 0,
                                 borderColor: 'divider',
+                                cursor: 'pointer',
+                                borderRadius: 1,
+                                transition: 'background-color 0.2s ease',
+                                '&:hover': {
+                                    bgcolor: 'action.hover',
+                                },
                             }}
                         >
                             <Typography variant="caption" color="text.secondary">

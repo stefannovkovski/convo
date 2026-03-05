@@ -32,4 +32,55 @@ export class HashtagsRepository {
             r => ({ tag: r.tag, count: r._count.tag })
         );
     }
+
+    getPostsByTag(tag: string) {
+        return this.prisma.post.findMany({
+            where: {
+                hashtags: {
+                    some: {
+                        tag,
+                    },
+                },
+            },
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        avatar: true,
+                    },
+                },
+                quotedPost: {
+                    include: {
+                        author: {
+                            select: {
+                                id: true,
+                                name: true,
+                                username: true,
+                                avatar: true,
+                            },
+                        },
+                        _count: {
+                            select: {
+                                likes: true,
+                                comments: true,
+                                retweets: true,
+                            },
+                        },
+                    },
+                },
+                _count: {
+                    select: {
+                        likes: true,
+                        comments: true,
+                        retweets: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+    }
 }
