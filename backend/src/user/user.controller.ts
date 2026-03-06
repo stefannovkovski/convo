@@ -38,6 +38,12 @@ export class UsersController {
     return this.usersService.searchUsers(query, req.user.userId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('suggested')
+  @ApiOperation({ summary: 'Get suggested users' })
+  getSuggestedUsers(@Req() req) {
+    return this.usersService.getSuggestedUsers(req.user.userId);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('/details/:username')

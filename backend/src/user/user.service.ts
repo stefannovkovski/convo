@@ -163,4 +163,8 @@ export class UsersService {
 
     return this.sanitizeUser(updatedUser, true);
   }
+
+  async getSuggestedUsers(currentUserId: number) {
+    return await this.usersRepository.getSuggestedUsers(currentUserId);
+  }
 }
