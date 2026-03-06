@@ -15,6 +15,7 @@ import { logout } from '@/lib/auth';
 import LogoutIcon from '@mui/icons-material/Logout';
 import usePosts from '@/hooks/usePosts';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
+import MessagesPanel from '@/components/chat/MessagesPanel';
 
 
 
@@ -22,6 +23,7 @@ export default function Sidebar() {
   const router = useRouter();
   const [postOpen, setPostOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [messagesOpen, setMessagesOpen] = useState(false);
   const { user, loading } = useAuth();
   const { onCreate } = usePosts(); 
 
@@ -41,7 +43,7 @@ export default function Sidebar() {
   const menuItems = [
     { icon: <HomeIcon />, label: 'Home', path: '/dashboard/home' },
     { icon: <SearchIcon />, label: 'Explore', path: '/dashboard/explore' },
-    { icon: <PersonIcon />, label: 'Profile',   path: user ? `/dashboard/${user.username}` : '/login', },
+    { icon: <PersonIcon />, label: 'Profile', path: user ? `/dashboard/${user.username}` : '/login' },
   ];
 
   return (
@@ -55,7 +57,6 @@ export default function Sidebar() {
         />
       </Box>
 
-
       <IconButton
         onClick={toggleTheme}
         sx={{
@@ -68,7 +69,7 @@ export default function Sidebar() {
           transition: 'all 0.2s ease',
           width: 48,
           height: 48,
-          mb : 2,
+          mb: 2,
         }}
         aria-label="toggle theme"
       >
@@ -79,7 +80,7 @@ export default function Sidebar() {
         )}
       </IconButton>
 
-      <List sx={{ flex: 1 }}>
+      <List sx={{ flex: 1, width: '100%' }}>
         {menuItems.map((item) => (
           <ListItemButton
             key={item.label}
@@ -97,10 +98,18 @@ export default function Sidebar() {
             />
           </ListItemButton>
         ))}
+
         <NotificationPanel
           userId={user?.id ?? null}
           expanded={notificationsOpen}
           onToggle={() => setNotificationsOpen((o) => !o)}
+        />
+
+        <MessagesPanel
+          userId={user?.id ?? null}
+          expanded={messagesOpen}
+          onToggle={() => setMessagesOpen((o) => !o)}
+          apiUrl={process.env.NEXT_PUBLIC_API_URL}
         />
       </List>
 
@@ -108,7 +117,7 @@ export default function Sidebar() {
         variant="contained"
         fullWidth
         size="large"
-        onClick = {() => setPostOpen(true)}
+        onClick={() => setPostOpen(true)}
         sx={{
           borderRadius: 3,
           py: 1.5,
@@ -122,12 +131,12 @@ export default function Sidebar() {
       </Button>
 
       <CreatePostDialog
-            open={postOpen}
-            onClose={() => setPostOpen(false)}
-            onCreate={(data) => {
-            onCreate(data);
-            handlePostCreated();
-          }}
+        open={postOpen}
+        onClose={() => setPostOpen(false)}
+        onCreate={(data) => {
+          onCreate(data);
+          handlePostCreated();
+        }}
       />
 
       <Box
@@ -142,7 +151,7 @@ export default function Sidebar() {
           '&:hover': { bgcolor: 'action.hover' },
         }}
       >
- {loading ? (
+        {loading ? (
           <>
             <Skeleton variant="circular" width={40} height={40} />
             <Box sx={{ flex: 1 }}>
@@ -155,9 +164,7 @@ export default function Sidebar() {
             <Avatar 
               src={`${process.env.NEXT_PUBLIC_API_URL}${user.avatar}`}
               sx={{ width: 40, height: 40, bgcolor: 'primary.main' }} 
-            >
-
-            </Avatar>
+            />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="body2" fontWeight={700} noWrap>
                 {user.name}
@@ -179,7 +186,6 @@ export default function Sidebar() {
             </Box>
           </>
         )}
-
       </Box>
     </Box>
   );

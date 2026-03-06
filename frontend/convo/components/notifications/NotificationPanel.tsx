@@ -78,7 +78,7 @@ export default function NotificationPanel({
         </Badge>
         <ListItemText
           primary="Notifications"
-          primaryTypographyProps={{ fontSize: '1.25rem', fontWeight: 500 }}
+          primaryTypographyProps={{ fontSize: '1.25rem', fontWeight: 500 , ml: 2 }}
         />
         {expanded ? <ExpandLess /> : <ExpandMore />}
       </ListItemButton>

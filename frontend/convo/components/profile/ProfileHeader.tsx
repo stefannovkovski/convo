@@ -19,6 +19,7 @@ type ProfileHeaderProps = {
   isFollowing?: boolean;
   onToggleFollow?: () => void;
   onEdit?: (data) => void;
+  extraActions?: React.ReactNode;
 };
 
 export default function ProfileHeader({
@@ -33,6 +34,7 @@ export default function ProfileHeader({
   isFollowing,
   onToggleFollow,
   onEdit,
+  extraActions,
 }: ProfileHeaderProps) {
 
   const [editOpen, setEditOpen] = useState(false);
@@ -63,71 +65,64 @@ export default function ProfileHeader({
               borderColor: 'background.paper',
               mt: -8,
             }}
-          >
-          </Avatar>
+          />
 
           {isMe ? (
             <>
               <Button
-              variant="outlined"
-              size="large"
-              startIcon={<EditIcon />}
-              onClick={() => setEditOpen(true)}
-              sx={{
-                borderRadius: 3,
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 3,
-                minWidth: 120,
-              }}
-            >
-              Edit Profile
-            </Button>
+                variant="outlined"
+                size="large"
+                startIcon={<EditIcon />}
+                onClick={() => setEditOpen(true)}
+                sx={{
+                  borderRadius: 3,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  px: 3,
+                  minWidth: 120,
+                }}
+              >
+                Edit Profile
+              </Button>
 
               <UpdateProfileDialog
                 open={editOpen}
                 onClose={() => setEditOpen(false)}
-                initialData={{
-                  name,
-                  bio,
-                  avatarUrl,
-                }}
-                onSave={(data) => {
-                  onEdit?.(data);
-                }}
-              >
-              </UpdateProfileDialog>
+                initialData={{ name, bio, avatarUrl }}
+                onSave={(data) => { onEdit?.(data); }}
+              />
             </>
-          ) : onToggleFollow ? (
-            <Button
-              key={isFollowing ? 'following' : 'follow'} 
-              variant={isFollowing ? 'outlined' : 'contained'}
-              size="large"
-              startIcon={isFollowing ? <CheckIcon /> : <PersonAddIcon />}
-              onClick={onToggleFollow}
-              sx={{
-                borderRadius: 3,
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 3,
-                minWidth: 120,
-                ...(isFollowing && {
-                  '&:hover': {
-                    borderColor: 'error.main',
-                    color: 'error.main',
-                    '& .MuiButton-startIcon': {
-                      display: 'none',
-                    },
-                    '&::after': {
-                      content: '"Unfollow"',
-                    },
-                  },
-                }),
-              }}
-            >
-              {isFollowing ? 'Following' : 'Follow'}
-            </Button>
-          ) : null}
+          ) : (
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              {extraActions}
+              {onToggleFollow && (
+                <Button
+                  key={isFollowing ? 'following' : 'follow'}
+                  variant={isFollowing ? 'outlined' : 'contained'}
+                  size="large"
+                  startIcon={isFollowing ? <CheckIcon /> : <PersonAddIcon />}
+                  onClick={onToggleFollow}
+                  sx={{
+                    borderRadius: 3,
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    px: 3,
+                    minWidth: 120,
+                    ...(isFollowing && {
+                      '&:hover': {
+                        borderColor: 'error.main',
+                        color: 'error.main',
+                        '& .MuiButton-startIcon': { display: 'none' },
+                        '&::after': { content: '"Unfollow"' },
+                      },
+                    }),
+                  }}
+                >
+                  {isFollowing ? 'Following' : 'Follow'}
+                </Button>
+              )}
+            </Box>
+          )}
         </Box>
 
         <Box sx={{ mb: 1 }}>
@@ -140,74 +135,26 @@ export default function ProfileHeader({
         </Box>
 
         {bio && (
-          <Typography
-            variant="body1"
-            sx={{ mb: 2, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}
-          >
+          <Typography variant="body1" sx={{ mb: 2, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
             {bio}
           </Typography>
         )}
 
         <Box sx={{ display: 'flex', gap: 3 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 0.5,
-              cursor: 'pointer',
-              '&:hover': {
-                '& .count': {
-                  textDecoration: 'underline',
-                },
-              },
-            }}
-          >
-            <Typography variant="body2" fontWeight={700} className="count">
-              {followingCount || 0}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Following
-            </Typography>
+          <Box sx={{ display: 'flex', gap: 0.5, cursor: 'pointer', '&:hover': { '& .count': { textDecoration: 'underline' } } }}>
+            <Typography variant="body2" fontWeight={700} className="count">{followingCount || 0}</Typography>
+            <Typography variant="body2" color="text.secondary">Following</Typography>
           </Box>
 
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 0.5,
-              cursor: 'pointer',
-              '&:hover': {
-                '& .count': {
-                  textDecoration: 'underline',
-                },
-              },
-            }}
-          >
-            <Typography variant="body2" fontWeight={700} className="count">
-              {followersCount || 0}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Followers
-            </Typography>
+          <Box sx={{ display: 'flex', gap: 0.5, cursor: 'pointer', '&:hover': { '& .count': { textDecoration: 'underline' } } }}>
+            <Typography variant="body2" fontWeight={700} className="count">{followersCount || 0}</Typography>
+            <Typography variant="body2" color="text.secondary">Followers</Typography>
           </Box>
 
           {postsCount !== undefined && (
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 0.5,
-                cursor: 'pointer',
-                '&:hover': {
-                  '& .count': {
-                    textDecoration: 'underline',
-                  },
-                },
-              }}
-            >
-              <Typography variant="body2" fontWeight={700} className="count">
-                {postsCount}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Posts
-              </Typography>
+            <Box sx={{ display: 'flex', gap: 0.5, cursor: 'pointer', '&:hover': { '& .count': { textDecoration: 'underline' } } }}>
+              <Typography variant="body2" fontWeight={700} className="count">{postsCount}</Typography>
+              <Typography variant="body2" color="text.secondary">Posts</Typography>
             </Box>
           )}
         </Box>

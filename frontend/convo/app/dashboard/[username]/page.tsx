@@ -5,15 +5,18 @@ import usePosts from '@/hooks/usePosts';
 import PostCard from '@/components/posts/PostCard';
 import { useAuth } from '@/hooks/useUser';
 import ProfileHeader from '@/components/profile/ProfileHeader';
+import MessageButton from '@/components/chat/MessageButton';
 
 export default function ProfilePage() {
   const { username } = useParams();
 
-  const { posts, loading, onCreate, onComment, onEdit, onDelete, onToggleLike, onToggleRetweet } = usePosts({username: username as string});
+  const { posts, loading, onCreate, onComment, onEdit, onDelete, onToggleLike, onToggleRetweet } =
+    usePosts({ username: username as string });
   const { user, loading: profileLoading, toggleFollow, updateProfile } = useAuth(username as string);
 
-  if (profileLoading) return null;
+  const { user: currentUser } = useAuth();
 
+  if (profileLoading) return null;
   if (!user) return <div>User not found</div>;
 
   return (
@@ -30,9 +33,23 @@ export default function ProfilePage() {
         isFollowing={user.isFollowedByMe}
         onToggleFollow={user.isMe ? undefined : toggleFollow}
         onEdit={user.isMe ? updateProfile : undefined}
+        extraActions={
+          !user.isMe && currentUser ? (
+            <MessageButton
+              currentUserId={currentUser.id}
+              currentUserUsername={currentUser.username}
+              currentUserName={currentUser.name}
+              currentUserAvatar={currentUser.avatar}
+              targetUserId={user.id}
+              targetUsername={user.username}
+              targetName={user.name}
+              targetAvatar={user.avatar}
+            />
+          ) : undefined
+        }
       />
 
-      {posts.map(post => (
+      {posts.map((post) => (
         <PostCard
           key={`${post.id}-${post.isRetweet ? post.retweetedBy?.id : 'post'}`}
           post={post}
