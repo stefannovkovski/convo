@@ -7,10 +7,14 @@ import { useSuggestedUser } from '@/hooks/useSuggestedUser';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api } from '@/services/Api';
+import { useTopNews } from '@/hooks/useTopNews';
+import NewspaperIcon from '@mui/icons-material/Newspaper';
 
 export default function SuggestionsPanel() {
     const { trending, loading: trendingLoading } = useTrending();
     const { suggestedUsers, loading: usersLoading } = useSuggestedUser();
+    const { articles, loading: newsLoading } = useTopNews('technology');
+
     const router = useRouter();
 
     const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
@@ -32,6 +36,62 @@ export default function SuggestionsPanel() {
 
     return (
         <Box sx={{ pt: 2, pr: 2 }}>
+            <Card sx={{ borderRadius: 3, p: 2, mt: 2, mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <NewspaperIcon color="primary" />
+                    <Typography variant="h6" fontWeight={700}>
+                        Top News
+                    </Typography>
+                </Box>
+
+                {newsLoading ? (
+                    [1, 2, 3].map(i => (
+                        <Box key={i} sx={{ mb: 2 }}>
+                            <Skeleton width="80%" height={16} />
+                            <Skeleton width="40%" height={14} sx={{ mt: 0.5 }} />
+                        </Box>
+                    ))
+                ) : articles.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">No news available</Typography>
+                ) : (
+                    articles.map((article, index) => (
+                        <Box
+                            key={index}
+                            component="a"
+                            href={article.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                                display: 'block',
+                                pb: 2,
+                                borderBottom: index < articles.length - 1 ? 1 : 0,
+                                borderColor: 'divider',
+                                textDecoration: 'none',
+                                color: 'inherit',
+                                borderRadius: 1,
+                                transition: 'background-color 0.2s ease',
+                                '&:hover': { bgcolor: 'action.hover' },
+                            }}
+                        >
+                            <Typography variant="caption" color="text.secondary">
+                                {article.source.name} · {new Date(article.publishedAt).toLocaleDateString()}
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                sx={{ mt: 0.5, lineHeight: 1.4,
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                {article.title}
+                            </Typography>
+                        </Box>
+                    ))
+                )}
+            </Card>
             <Card sx={{ borderRadius: 3, p: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <TrendingUpIcon color="primary" />
@@ -60,8 +120,8 @@ export default function SuggestionsPanel() {
                                 router.push(`/dashboard/hashtag/${encodeURIComponent(item.tag.replace(/^#/, ''))}`)
                             }
                             sx={{
-                                mb: 2,
                                 pb: 2,
+                                pt:1,
                                 borderBottom: index < trending.length - 1 ? 1 : 0,
                                 borderColor: 'divider',
                                 cursor: 'pointer',
@@ -73,7 +133,7 @@ export default function SuggestionsPanel() {
                             <Typography variant="caption" color="text.secondary">
                                 Trending
                             </Typography>
-                            <Typography variant="h6" fontWeight={600} sx={{ my: 0.5 }}>
+                            <Typography variant="body1" fontWeight={600} sx={{ my: 0.5 }}>
                                 {item.tag}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
