@@ -38,7 +38,11 @@ model Post {
   retweets  Retweet[]
   comments  Comment[]
   hashtags   PostHashtag[]
-  
+
+  replyToPostId Int?
+  replyToPost   Post?  @relation("PostReplies", fields: [replyToPostId], references: [id], onDelete: Cascade)
+  replies       Post[] @relation("PostReplies")
+
   quotedPostId Int?
   quotedPost   Post?  @relation("QuoteTweets", fields: [quotedPostId], references: [id], onDelete: Cascade)
   quotedBy     Post[] @relation("QuoteTweets")
@@ -46,6 +50,7 @@ model Post {
   @@index([authorId])
   @@index([createdAt])
   @@index([quotedPostId])
+  @@index([replyToPostId])
 }
 
 model PostHashtag {
@@ -101,6 +106,10 @@ model Comment {
 
   postId    Int
   post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  parentId Int?
+  parent Comment? @relation("CommentReplies", fields:[parentId], references:[id], onDelete:Cascade)
+  replies Comment[] @relation("CommentReplies")
 
   @@index([postId])
   @@index([userId])

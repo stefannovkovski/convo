@@ -1,27 +1,29 @@
 import { PostResponseDto } from "./postResponse.dto";
 
 export class PostDetailsResponseDto extends PostResponseDto {
-  comments: {
-    id: number;
-    content: string;
-    createdAt: Date;
-    user: { id: number; name: string; username: string; avatar: string };
-  }[];
+  replies: PostResponseDto[];
 
-  static fromPostWithComments(post: any, isLikedByMe = false, isRetweetedByMe = false): PostDetailsResponseDto {
+  static fromPostWithReplies(
+    post: any,
+    likedPostIds: Set<number>,
+    retweetedPostIds: Set<number>
+  ): PostDetailsResponseDto {
+    const base = PostResponseDto.fromPost(
+      post,
+      likedPostIds.has(post.id),
+      retweetedPostIds.has(post.id)
+    );
+
     return {
-      ...PostResponseDto.fromPost(post, isLikedByMe, isRetweetedByMe),
-      comments: post.comments?.map((c: any) => ({
-        id: c.id,
-        content: c.content,
-        createdAt: c.createdAt,
-        user: {
-          id: c.user.id,
-          name: c.user.name,
-          username: c.user.username,
-          avatar: c.user.avatar,
-        },
-      })) ?? [],
+      ...base,
+      replies:
+        post.replies?.map((p: any) =>
+          PostResponseDto.fromPost(
+            p,
+            likedPostIds.has(p.id),
+            retweetedPostIds.has(p.id)
+          )
+        ) ?? [],
     };
   }
 }

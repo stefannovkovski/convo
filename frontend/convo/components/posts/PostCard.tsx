@@ -11,12 +11,12 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { PostResponseDto } from '@/types/post/PostResponseDto';
 import RetweetMenu from '../retweet/RetweetMenu';
 import QuotePostDialog from '../retweet/QuotePostDialog';
-import CommentDialog from '../comment/CommentDialog';
 import { getUser } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import PostOptionsMenu from './PostOptionsMenu';
 import EditPostDialog from './EditPostDialog';
 import DeletePostDialog from './DeletePostDialog';
+import CommentDialog from '../comment/CommentDialog';
 
 interface PostCardProps {
   post: PostResponseDto;

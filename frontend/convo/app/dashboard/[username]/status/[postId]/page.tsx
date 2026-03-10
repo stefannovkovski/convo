@@ -1,7 +1,6 @@
 'use client';
 
 import CommentBox from "@/components/comment/CommentBox";
-import CommentsList from "@/components/comment/CommentList";
 import PostCard from "@/components/posts/PostCard";
 import usePosts from "@/hooks/usePosts";
 import { Alert, Box, CircularProgress, IconButton, Typography } from "@mui/material";
@@ -11,7 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 export default function PostDetailsPage() {
     const router = useRouter();
     const { postId } = useParams();
-    const { posts, loading, error, onComment, onDeleteComment, onToggleLike, onToggleRetweet, onCreate, onEdit, onDelete} = usePosts({ postId: Number(postId)});
+    const { posts, loading, error, onComment, onToggleLike, onToggleRetweet, onCreate, onEdit, onDelete} = usePosts({ postId: Number(postId)});
 
     if (loading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -63,11 +62,22 @@ export default function PostDetailsPage() {
         />
       </Box>
 
-      <CommentsList
-        comments={'comments' in posts[0] ? posts[0].comments : []}
-        postId={posts[0].id}
-        onDelete={onDeleteComment}
-      />
+      {'replies' in posts[0] && posts[0].replies.length > 0 && (
+        <Box>
+          {posts[0].replies.map((reply) => (
+            <PostCard
+              key={reply.id}
+              post={reply}
+              onToggleLike={onToggleLike}
+              onToggleRetweet={onToggleRetweet}
+              onCreate={onCreate}
+              onComment={onComment}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </Box>
+      )}
     </Box>
     )
 }

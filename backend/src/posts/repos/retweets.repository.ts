@@ -40,6 +40,7 @@ export class RetweetsRepository {
                                     select: {
                                         likes: true,
                                         comments: true,
+                                        replies: true,
                                         retweets: true,
                                     }
                                 }
@@ -49,6 +50,7 @@ export class RetweetsRepository {
                             select: {
                                 likes: true,
                                 comments: true,
+                                replies: true,
                                 retweets: true,
                             }
                         }

@@ -7,6 +7,9 @@ export class PostRepository {
 
     getAllPosts() {
         return this.prisma.post.findMany({
+            where: {
+                replyToPostId: null,
+            },
             include: {
                 author: {
                     select: {
@@ -30,6 +33,7 @@ export class PostRepository {
                             select: {
                                 likes: true,
                                 comments: true,
+                                replies: true,
                                 retweets: true,
                             }
                         }
@@ -39,6 +43,7 @@ export class PostRepository {
                     select: {
                         likes: true,
                         comments: true,
+                        replies: true,
                         retweets: true,
                     }
                 }
@@ -61,10 +66,10 @@ export class PostRepository {
                         avatar: true,
                     },
                 },
-                comments: {
-                    orderBy: { createdAt: 'desc' },
+                replies: {
+                    orderBy: { createdAt: 'asc' },
                     include: {
-                        user: {
+                        author: {
                             select: {
                                 id: true,
                                 name: true,
@@ -72,6 +77,14 @@ export class PostRepository {
                                 avatar: true,
                             },
                         },
+                        _count: {
+                            select: {
+                                likes: true,
+                                comments: true,
+                                replies: true,
+                                retweets: true,
+                            }
+                        }
                     },
                 },
                 quotedPost: {
@@ -88,6 +101,7 @@ export class PostRepository {
                             select: {
                                 likes: true,
                                 comments: true,
+                                replies: true,
                                 retweets: true,
                             }
                         }
@@ -97,6 +111,7 @@ export class PostRepository {
                     select: {
                         likes: true,
                         comments: true,
+                        replies: true,
                         retweets: true,
                     }
                 }
@@ -109,6 +124,7 @@ export class PostRepository {
         imageUrl?: string;
         authorId: number;
         quotedPostId?: number;
+        replyToPostId?: number;
     }) {
         return this.prisma.post.create({ 
             data,
@@ -135,6 +151,7 @@ export class PostRepository {
                             select: {
                                 likes: true,
                                 comments: true,
+                                replies: true,
                                 retweets: true,
                             }
                         }
@@ -144,6 +161,7 @@ export class PostRepository {
                     select: {
                         likes: true,
                         comments: true,
+                        replies: true,
                         retweets: true,
                     }
                 }

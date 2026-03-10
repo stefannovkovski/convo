@@ -6,7 +6,7 @@ export class CreatePostDto{
   @IsString()
   @MaxLength(280)
   content: string
-  
+
   @ApiProperty()
   @IsOptional()
   @IsString()
@@ -16,4 +16,9 @@ export class CreatePostDto{
   @IsNumber()
   @IsOptional()
   quotedPostId?: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  replyToPostId?: number;
 }

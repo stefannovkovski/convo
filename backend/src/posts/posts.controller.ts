@@ -78,20 +78,6 @@ export class PostsController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Post('/:postId/comments')
-    @ApiOperation({ summary: 'Create a comment on a post' })
-    createComment(@Param('postId') postId: string, @Body('content') content: string ,@Req() req,) {
-        return this.postService.createComment(+postId,req.user.userId,content);
-    }
-
-    @UseGuards(JwtAuthGuard)
-    @Delete('/comments/:commentId')
-    @ApiOperation({ summary: 'Delete comment from post' })
-    deleteComment(@Param('commentId') commentId: string, @Req() req,) {
-        return this.postService.deleteComment(+commentId,req.user.userId);
-    }
-
-    @UseGuards(JwtAuthGuard)
     @Patch('/:postId')
     @ApiOperation({ summary: 'Edit a post' })
     editPost(@Param('postId') postId: string, @Body() dto: Partial<CreatePostDto>, @Req() req) {

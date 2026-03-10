@@ -113,71 +113,38 @@ export default function usePosts(params?: { username?: string; postId?: number; 
     }, [fetchPosts]);
 
     const onToggleLike = useCallback((postId: number) => {
-    api
+        api
         .post<{ postId: number; isLiked: boolean; likeCount: number }>(
-        `/posts/${postId}/like`
+            `/posts/${postId}/like`
         )
-        .then((response) => {
-        const { postId, isLiked, likeCount } = response.data;
-
-        setState((prevState) => ({
-            ...prevState,
-            posts: prevState.posts.map((p) =>
-            p.id === postId
-                ? {
-                    ...p,
-                    isLikedByMe: isLiked,
-                    counts: {
-                    ...p.counts,
-                    likes: likeCount,
-                    },
-                }
-                : p
-            ),
-        }));
+        .then(() => {
+            fetchPosts();
         })
         .catch((error) => {
-        console.log(error);
-        setState((prevState) => ({
+            console.log(error);
+            setState((prevState) => ({
             ...prevState,
             error: error.response?.data?.message || "Failed to toggle like",
-        }));
+            }));
         });
-    }, []);
+    }, [fetchPosts]);
 
     const onToggleRetweet = useCallback((postId: number) => {
-    api
+        api
         .post<{ postId: number; isRetweeted: boolean; retweetCount: number }>(
-        `/posts/${postId}/retweet`
+            `/posts/${postId}/retweet`
         )
-        .then((response) => {
-        const { postId, isRetweeted, retweetCount } = response.data;
-
-        setState((prevState) => ({
-            ...prevState,
-            posts: prevState.posts.map((p) =>
-            p.id === postId
-                ? {
-                    ...p,
-                    isRetweetedByMe: isRetweeted,
-                    counts: {
-                    ...p.counts,
-                    retweets: retweetCount,
-                    },
-                }
-                : p
-            ),
-        }));
-        }
-        )
+        .then(() => {
+            fetchPosts();
+        })
         .catch((error) => {
-        console.log(error);
-        setState((prevState) => ({
+            console.log(error);
+            setState((prevState) => ({
             ...prevState,
             error: error.response?.data?.message || "Failed to toggle retweet",
-        }));
+            }));
         });
-    }, []);
+    }, [fetchPosts]);
 
     const clearError = useCallback(() => {
         setState((prevState) => ({
@@ -189,10 +156,11 @@ export default function usePosts(params?: { username?: string; postId?: number; 
         const onComment = useCallback(
         (postId: number, content: string) => {
             api
-            .post<{ commentCount: number }>(`/posts/${postId}/comments`, {
+            .post<PostResponseDto>('/posts', {
                 content,
+                replyToPostId: postId,
             })
-            .then((response) => {
+            .then(() => {
                 fetchPosts();
             })
             .catch((error) => {
@@ -201,46 +169,12 @@ export default function usePosts(params?: { username?: string; postId?: number; 
                 ...prevState,
                 error:
                     error.response?.data?.message ||
-                    "Failed to create comment",
+                    "Failed to create reply",
                 }));
             });
         },
         [fetchPosts]
         );
-
-        const onDeleteComment = useCallback(
-        (commentId: number, postId: number) => {
-            api
-            .delete(`/posts/comments/${commentId}`)
-            .then(() => {
-                setState((prevState) => ({
-                ...prevState,
-                posts: prevState.posts.map((p) =>
-                    p.id === postId
-                    ? {
-                        ...p,
-                        counts: {
-                            ...p.counts,
-                            comments: p.counts.comments - 1,
-                        },
-                        ...('comments' in p ? {
-                            comments: p.comments.filter((c: any) => c.id !== commentId)
-                        } : {})
-                        }
-                    : p
-                ),
-                }));
-            })
-            .catch((error) => {
-                setState((prevState) => ({
-                ...prevState,
-                error: error.response?.data?.message || "Failed to delete comment",
-                }));
-            });
-        },
-        []
-        );
-
 
     useEffect(() => {
         fetchPosts();
@@ -251,7 +185,6 @@ export default function usePosts(params?: { username?: string; postId?: number; 
         fetchPosts,
         onCreate,
         onComment,
-        onDeleteComment,
         onEdit,
         onDelete,
         onToggleLike,

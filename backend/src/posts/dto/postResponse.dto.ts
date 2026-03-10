@@ -22,7 +22,7 @@ export class PostResponseDto {
       author: post.author,
       counts: {
         likes: post._count.likes,
-        comments: post._count.comments,
+        comments: post._count.replies ?? post._count.comments ?? 0,
         retweets: post._count.retweets,
       },
       isLikedByMe,

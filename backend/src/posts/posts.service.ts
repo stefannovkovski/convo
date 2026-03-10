@@ -5,7 +5,6 @@ import { PostResponseDto } from './dto/postResponse.dto';
 import { PostDetailsResponseDto } from './dto/postDetailsResponse.dto';
 import { LikesRepository } from './repos/likes.repository';
 import { RetweetsRepository } from './repos/retweets.repository';
-import { CommentsRepository } from './repos/comments.repository';
 import { FeedRepository } from './repos/feed.repository';
 import { FirebaseService } from '../firebase/firebase.service';
 import { UsersRepository } from 'src/user/user.repository';
@@ -21,7 +20,6 @@ export class PostsService {
         private readonly postRepository: PostRepository,
         private readonly likesRepository: LikesRepository,
         private readonly retweetsRepository: RetweetsRepository,
-        private readonly commentsRepository: CommentsRepository,
         private readonly feedRepository: FeedRepository,
         private readonly firebaseService: FirebaseService,
         private readonly usersRepository: UsersRepository,
@@ -46,6 +44,7 @@ export class PostsService {
             imageUrl,
             authorId: userId,
             quotedPostId: dto.quotedPostId,
+            replyToPostId: dto.replyToPostId,
         });
 
         if(dto.content.includes('#')) {
@@ -71,11 +70,11 @@ export class PostsService {
         const geminiReply = await this.callGeminiApi(content, user?.username ?? '');
         if (!geminiReply) return;
         
-        await this.commentsRepository.createComment({
-            postId,
-            userId: crokUser.id,
+        await this.postRepository.createPost({
             content: geminiReply,
-        })
+            authorId: crokUser.id,
+            replyToPostId: postId,
+        });
     }
 
         private async callGeminiApi(postContent: string, username: string): Promise<string | null> {
@@ -135,11 +134,11 @@ export class PostsService {
         const likedPostIdsSet = new Set(likedPosts);
         const retweetedPostIdsSet = new Set(retweetedPosts);
         
-        return PostDetailsResponseDto.fromPostWithComments(
+        return PostDetailsResponseDto.fromPostWithReplies(
             post,
-            likedPostIdsSet.has(postId),
-            retweetedPostIdsSet.has(postId)
-        );    
+            likedPostIdsSet,
+            retweetedPostIdsSet,
+        );
     }
 
     async toggleLike(postId: number, userId: number) {
@@ -186,31 +185,6 @@ export class PostsService {
             isRetweeted: !existingRetweet, 
             retweetCount           
         };
-    }
-
-    async createComment(postId: number, userId: number, content: string): Promise<{ commentCount: number }> {
-        const post = await this.postRepository.getPostById(postId);
-        if (!post) {
-            throw new NotFoundException('Post not found');
-        }
-
-        if (!content) {
-            throw new BadRequestException('Comment content is required');
-        }
-
-        await this.commentsRepository.createComment({
-            postId,
-            userId,
-            content,
-        });
-
-        const commentCount = await this.commentsRepository.countComments(postId);
-
-        return { commentCount };
-    }
-
-    async deleteComment(commentId: number, userId: number) {
-        await this.commentsRepository.deleteComment(commentId, userId);
     }
 
     async editPost(postId: number, userId: number, dto: Partial<CreatePostDto>) {
