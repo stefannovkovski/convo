@@ -23,12 +23,11 @@ interface PostCardProps {
   onToggleLike: (postId: number) => void;
   onToggleRetweet: (postId: number) => void;
   onCreate: (data: { content: string; quotedPostId?: number }) => void;
-  onComment: (postId: number,  content: string ) => void;
   onEdit: (postId: number, data: { content: string }) => void;
   onDelete: (postId: number) => void;
 }
 
-export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate, onComment, onEdit, onDelete }: PostCardProps) {
+export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate, onEdit, onDelete }: PostCardProps) {
   const [retweetMenuAnchor, setRetweetMenuAnchor] = useState<null | HTMLElement>(null);
   const [optionsMenuAnchor, setOptionsMenuAnchor] = useState<null | HTMLElement>(null);
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
@@ -159,7 +158,10 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
             {post.imageUrl && (
               <Box
                 component="img"
-                src={`${process.env.NEXT_PUBLIC_API_URL}${post.imageUrl}`}
+                src={
+                  post.imageUrl.startsWith('http') 
+                  ? post.imageUrl
+                  : `${process.env.NEXT_PUBLIC_API_URL}${post.imageUrl}`}
                 alt="Post image"
                 sx={{
                   width: '100%',
@@ -319,13 +321,6 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
         onClose={() => setQuoteDialogOpen(false)}
         post={post}
         onCreate={onCreate}
-      />
-
-      <CommentDialog
-        open={commentDialogOpen}
-        postId={post.id}
-        onClose={() => setCommentDialogOpen(false)}
-        onComment={onComment}
       />
 
       <EditPostDialog

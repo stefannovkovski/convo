@@ -18,7 +18,7 @@ export class CreatePostDto{
   quotedPostId?: number;
 
   @ApiProperty()
-  @IsNumber()
+  @IsString()
   @IsOptional()
   replyToPostId?: number;
 }

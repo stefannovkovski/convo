@@ -66,7 +66,6 @@ export default function FeedPageContent({ title, hashtag }: FeedPageContentProps
               onToggleLike={onToggleLike}
               onToggleRetweet={onToggleRetweet}
               onCreate={onCreate}
-              onComment={onComment}
               onEdit={onEdit}
               onDelete={onDelete}
             />

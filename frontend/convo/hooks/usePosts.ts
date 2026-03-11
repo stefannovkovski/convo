@@ -153,28 +153,42 @@ export default function usePosts(params?: { username?: string; postId?: number; 
         }));
     }, []);
 
-        const onComment = useCallback(
-        (postId: number, content: string) => {
+    const onComment = useCallback(
+        (postId: number, data: FormData | { content: string }) => {
+        if (data instanceof FormData) {
+            data.append('replyToPostId', String(postId));
+            api
+            .post<PostResponseDto>('/posts', data, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            .then(() => {
+                fetchPosts();
+            })
+            .catch((error) => {
+                setState((prevState) => ({
+                ...prevState,
+                error: error.response?.data?.message || 'Failed to create reply',
+                }));
+            });
+        } else {
             api
             .post<PostResponseDto>('/posts', {
-                content,
+                content: data.content,
                 replyToPostId: postId,
             })
             .then(() => {
                 fetchPosts();
             })
             .catch((error) => {
-                console.log(error);
                 setState((prevState) => ({
                 ...prevState,
-                error:
-                    error.response?.data?.message ||
-                    "Failed to create reply",
+                error: error.response?.data?.message || 'Failed to create reply',
                 }));
             });
+        }
         },
         [fetchPosts]
-        );
+    );
 
     useEffect(() => {
         fetchPosts();

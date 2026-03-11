@@ -6,6 +6,7 @@ import usePosts from "@/hooks/usePosts";
 import { Alert, Box, CircularProgress, IconButton, Typography } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useParams, useRouter } from "next/navigation";
+import CreatePostBox from "@/components/posts/CreatePostBox";
 
 export default function PostDetailsPage() {
     const router = useRouter();
@@ -48,16 +49,20 @@ export default function PostDetailsPage() {
           onToggleLike={onToggleLike}
           onToggleRetweet={onToggleRetweet}
           onCreate={onCreate}
-          onComment={onComment}
           onEdit={onEdit}
           onDelete={onDelete}
         />
       </Box>
 
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-        <CommentBox
-          onSubmit={(content) => {
-            onComment(Number(postId), content);
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <CreatePostBox
+          mode="reply"
+          onCreate={(data) => {
+            if (data instanceof FormData) {
+              onComment(Number(postId), data);
+            } else {
+              onComment(Number(postId), { content: data.content });
+            }
           }}
         />
       </Box>
@@ -71,7 +76,6 @@ export default function PostDetailsPage() {
               onToggleLike={onToggleLike}
               onToggleRetweet={onToggleRetweet}
               onCreate={onCreate}
-              onComment={onComment}
               onEdit={onEdit}
               onDelete={onDelete}
             />

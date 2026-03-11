@@ -44,7 +44,7 @@ export class PostsService {
             imageUrl,
             authorId: userId,
             quotedPostId: dto.quotedPostId,
-            replyToPostId: dto.replyToPostId,
+            replyToPostId: Number(dto.replyToPostId) ?? undefined,
         });
 
         if(dto.content.includes('#')) {

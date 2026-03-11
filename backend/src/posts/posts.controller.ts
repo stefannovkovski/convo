@@ -51,7 +51,7 @@ export class PostsController {
     create(@UploadedFile() file: Express.Multer.File, @Body() dto: CreatePostDto, @Req() req): Promise<PostResponseDto> {
         const imageUrl = file
             ? `/uploads/posts/${file.filename}`
-            : undefined;
+            : dto.imageUrl ?? undefined;
 
         return this.postService.create(dto,imageUrl,req.user.userId);
     }
