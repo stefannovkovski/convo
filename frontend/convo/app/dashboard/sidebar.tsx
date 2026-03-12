@@ -19,7 +19,12 @@ import MessagesPanel from '@/components/chat/MessagesPanel';
 
 
 
-export default function Sidebar() {
+interface SidebarProps {
+  onNavigate?: () => void;
+  compact?: boolean;
+}
+
+export default function Sidebar({ onNavigate, compact = false }: SidebarProps) {
   const router = useRouter();
   const [postOpen, setPostOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -27,7 +32,7 @@ export default function Sidebar() {
   const { user, loading } = useAuth();
   const { onCreate } = usePosts(); 
 
-  const { toggleTheme, mode } = useThemeContext();
+  const { toggleTheme } = useThemeContext();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -38,6 +43,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     logout();
+    onNavigate?.();
   };
 
   const menuItems = [
@@ -47,13 +53,13 @@ export default function Sidebar() {
   ];
 
   return (
-    <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center' }}>
-      <Box sx={{ mb: 2, px: 2 }}>
+    <Box sx={{ p: compact ? 2 : 3, display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center', bgcolor: 'background.paper' , borderRight: 2, borderColor: 'divider', mr: 0}}>
+      <Box sx={{ mb: 2, px: compact ? 1 : 2 }}>
         <Image 
          src={isDark ? '/convo-logo-dark.jpg' : '/convo-logo-light.jpg'}
          alt="Logo"
-         width={130}     
-         height={130}    
+         width={compact ? 100 : 130}
+         height={compact ? 100 : 130}
         />
       </Box>
 
@@ -84,7 +90,10 @@ export default function Sidebar() {
         {menuItems.map((item) => (
           <ListItemButton
             key={item.label}
-            onClick={() => router.push(item.path)}
+            onClick={() => {
+              router.push(item.path);
+              onNavigate?.();
+            }}
             sx={{
               borderRadius: 3,
               mb: 0.5,
@@ -117,7 +126,10 @@ export default function Sidebar() {
         variant="contained"
         fullWidth
         size="large"
-        onClick={() => setPostOpen(true)}
+        onClick={() => {
+          setPostOpen(true);
+          onNavigate?.();
+        }}
         sx={{
           borderRadius: 3,
           py: 1.5,

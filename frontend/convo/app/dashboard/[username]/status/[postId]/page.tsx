@@ -25,7 +25,7 @@ export default function PostDetailsPage() {
     <Box sx={{ maxWidth: 600, mx: 'auto', minHeight: '100vh', bgcolor: 'background.paper' }}>
       <Box sx={{ 
         position: 'sticky', 
-        top: 0, 
+        top: { xs: 56, md: 0 },
         bgcolor: 'background.paper', 
         borderBottom: 1, 
         borderColor: 'divider',

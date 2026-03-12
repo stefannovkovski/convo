@@ -56,7 +56,6 @@ export default function ProfilePage() {
           onToggleLike={onToggleLike}
           onToggleRetweet={onToggleRetweet}
           onCreate={onCreate}
-          onComment={onComment}
           onEdit={onEdit}
           onDelete={onDelete}
         />

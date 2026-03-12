@@ -9,7 +9,9 @@ import {
   IconButton,
   Alert,
   Dialog,
-  useTheme
+  Drawer,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 
 import ImageIcon from '@mui/icons-material/Image';
@@ -26,10 +28,10 @@ const gf = new GiphyFetch(process.env.NEXT_PUBLIC_GIPHY_API_KEY || '');
 interface CreatePostBoxProps {
   onCreate: (data: { content: string; imageUrl?: string } | FormData) => void;
   mode?: 'post' | 'reply';
-  placeholder?: string;  
+  placeholder?: string;
 }
 
-export default function CreatePostBox({ onCreate, mode='post', placeholder }: CreatePostBoxProps) {
+export default function CreatePostBox({ onCreate, mode = 'post', placeholder }: CreatePostBoxProps) {
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -40,8 +42,10 @@ export default function CreatePostBox({ onCreate, mode='post', placeholder }: Cr
   const [gifPickerOpen, setGifPickerOpen] = useState(false);
   const [gifSearch, setGifSearch] = useState('');
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+
   const theme = useTheme();
-  const textFieldRef = useRef<HTMLTextAreaElement>(null); 
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const textFieldRef = useRef<HTMLTextAreaElement>(null);
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
     const el = textFieldRef.current;
@@ -62,22 +66,65 @@ export default function CreatePostBox({ onCreate, mode='post', placeholder }: Cr
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
-  
+
     const formData = new FormData();
     formData.append('content', content);
-  
+
     if (image) {
       formData.append('image', image);
     } else if (gifUrl) {
       formData.append('imageUrl', gifUrl);
     }
-  
+
     onCreate(formData);
-  
+
     setContent('');
     setImage(null);
     setGifUrl(null);
   };
+
+  const gifPickerContent = (
+    <Box sx={{ p: 2, width: isMobile ? '100%' : 400 }}>
+      <TextField
+        fullWidth
+        placeholder="Search GIFs..."
+        value={gifSearch}
+        onChange={(e) => setGifSearch(e.target.value)}
+        size="small"
+        sx={{ mb: 2 }}
+      />
+      <Box sx={{ overflowY: 'auto', maxHeight: isMobile ? '55vh' : 400 }}>
+        <Grid
+          width={isMobile ? Math.min(window.innerWidth - 32, 400) : 376}
+          columns={3}
+          fetchGifs={(offset) =>
+            gifSearch
+              ? gf.search(gifSearch, { offset, limit: 9 })
+              : gf.trending({ offset, limit: 9 })
+          }
+          key={gifSearch}
+          onGifClick={(gif, e) => {
+            e.preventDefault();
+            setGifUrl(gif.images.original.url);
+            setImage(null);
+            setGifPickerOpen(false);
+          }}
+        />
+      </Box>
+    </Box>
+  );
+
+  const emojiPickerContent = (
+    <Box sx={{ width: isMobile ? '100%' : 'auto' }}>
+      <EmojiPicker
+        onEmojiClick={handleEmojiSelect}
+        theme={theme.palette.mode === 'dark' ? Theme.DARK : Theme.LIGHT}
+        previewConfig={{ showPreview: false }}
+        width={isMobile ? '100%' : undefined}
+        style={isMobile ? { borderRadius: '16px 16px 0 0' } : undefined}
+      />
+    </Box>
+  );
 
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider', p: 2 }}>
@@ -98,7 +145,7 @@ export default function CreatePostBox({ onCreate, mode='post', placeholder }: Cr
             inputRef={textFieldRef}
             fullWidth
             multiline
-            placeholder={ placeholder ?? (mode === 'reply' ? 'Post your reply...' : "What's happening?")}
+            placeholder={placeholder ?? (mode === 'reply' ? 'Post your reply...' : "What's happening?")}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             variant="standard"
@@ -168,7 +215,12 @@ export default function CreatePostBox({ onCreate, mode='post', placeholder }: Cr
               >
                 <GifIcon />
               </IconButton>
-              <IconButton size="small" color="primary" onClick={() => setEmojiPickerOpen(true)}>
+
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => setEmojiPickerOpen(true)}
+              >
                 <EmojiEmotionsOutlinedIcon />
               </IconButton>
             </Box>
@@ -184,48 +236,50 @@ export default function CreatePostBox({ onCreate, mode='post', placeholder }: Cr
                 px: 3
               }}
             >
-              
-                  {mode === 'reply' ? 'Reply' : 'Post'}
+              {mode === 'reply' ? 'Reply' : 'Post'}
             </Button>
           </Box>
         </Box>
       </Box>
 
-      <Dialog open={gifPickerOpen} onClose={() => setGifPickerOpen(false)}>
-        <Box sx={{ p: 2, width: 400 }}>
-          <TextField
-            fullWidth
-            placeholder="Search GIFs..."
-            value={gifSearch}
-            onChange={(e) => setGifSearch(e.target.value)}
-            size="small"
-            sx={{ mb: 2 }}
-          />
-          <Grid
-            width={400}
-            columns={3}
-            fetchGifs={(offset) =>
-              gifSearch
-                ? gf.search(gifSearch, { offset, limit: 9 })  
-                : gf.trending({ offset, limit: 9 })     
+      {isMobile ? (
+        <Drawer
+          anchor="bottom"
+          open={gifPickerOpen}
+          onClose={() => setGifPickerOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: '16px 16px 0 0',
+              maxHeight: '75vh'
             }
-            key={gifSearch} 
-            onGifClick={(gif, e) => {
-              e.preventDefault();
-              setGifUrl(gif.images.original.url);
-              setImage(null);
-              setGifPickerOpen(false);
-            }}
-          />
-        </Box>
-      </Dialog>
-      <Dialog open={emojiPickerOpen} onClose={() => setEmojiPickerOpen(false)}>
-      <EmojiPicker
-        onEmojiClick={handleEmojiSelect}
-        theme={theme.palette.mode === 'dark' ? Theme.DARK : Theme.LIGHT}
-        previewConfig={{ showPreview: false }}
-      />
-    </Dialog>
+          }}
+        >
+          {gifPickerContent}
+        </Drawer>
+      ) : (
+        <Dialog open={gifPickerOpen} onClose={() => setGifPickerOpen(false)}>
+          {gifPickerContent}
+        </Dialog>
+      )}
+
+      {isMobile ? (
+        <Drawer
+          anchor="bottom"
+          open={emojiPickerOpen}
+          onClose={() => setEmojiPickerOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: '16px 16px 0 0'
+            }
+          }}
+        >
+          {emojiPickerContent}
+        </Drawer>
+      ) : (
+        <Dialog open={emojiPickerOpen} onClose={() => setEmojiPickerOpen(false)}>
+          {emojiPickerContent}
+        </Dialog>
+      )}
     </Box>
   );
 }

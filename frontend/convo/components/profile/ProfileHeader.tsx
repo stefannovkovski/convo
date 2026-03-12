@@ -59,11 +59,11 @@ export default function ProfileHeader({
           <Avatar
             src={`${process.env.NEXT_PUBLIC_API_URL}${avatarUrl}`}
             sx={{
-              width: 134,
-              height: 134,
+              width: { xs: 90, sm: 100, md: 134 },
+              height: { xs: 90, sm: 100, md: 134 },
               border: 4,
               borderColor: 'background.paper',
-              mt: -8,
+              mt: { xs: -5, sm: -6, md: -8 },
             }}
           />
 
@@ -78,8 +78,11 @@ export default function ProfileHeader({
                   borderRadius: 3,
                   textTransform: 'none',
                   fontWeight: 700,
-                  px: 3,
-                  minWidth: 120,
+                  whiteSpace: 'nowrap',
+                  fontSize: { xs: '0.85rem', sm: '0.875rem' },
+                  px: { xs: 2, sm: 3.5, md: 4 },
+                  mr: { xs: 0.2, sm: 2, md: 2.5 },
+                  maxWidth: { xs: 120, sm: 140, md: 160 }                
                 }}
               >
                 Edit Profile

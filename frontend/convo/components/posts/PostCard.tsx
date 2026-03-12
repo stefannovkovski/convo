@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { Box, Avatar, Typography, IconButton, Card, Link } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -25,9 +25,10 @@ interface PostCardProps {
   onCreate: (data: { content: string; quotedPostId?: number }) => void;
   onEdit: (postId: number, data: { content: string }) => void;
   onDelete: (postId: number) => void;
+  onComment?: (postId: number, data: { content: string }) => void;
 }
 
-export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate, onEdit, onDelete }: PostCardProps) {
+export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate, onEdit, onDelete, onComment }: PostCardProps) {
   const [retweetMenuAnchor, setRetweetMenuAnchor] = useState<null | HTMLElement>(null);
   const [optionsMenuAnchor, setOptionsMenuAnchor] = useState<null | HTMLElement>(null);
   const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
@@ -87,23 +88,23 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
   }
 
   return (
-    
     <>
       <Box
         onClick={handleNavigate}
         sx={{
           borderBottom: 1,
           borderColor: 'divider',
-          p: 2,
+          px: { xs: 1.5, sm: 3 },
+          py: { xs: 1.5, sm: 2 },
           cursor: 'pointer',
           transition: 'background-color 0.2s',
           '&:hover': {
             bgcolor: 'action.hover',
           },
         }}
-    >
+      >
         {post.isRetweet && post.retweetedBy && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, ml: 6 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, ml: { xs: 0, sm: 6 } }}>
             <RepeatIcon fontSize="small" sx={{ color: 'text.secondary' }} />
             <Typography variant="body2" color="text.secondary" fontWeight={700}>
               {post.retweetedBy.name} retweeted
@@ -112,13 +113,13 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
         )}
 
         <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <Avatar 
+          <Avatar
             sx={{ width: 48, height: 48 }}
             src={`${process.env.NEXT_PUBLIC_API_URL}${post.author.avatar}`}
           />
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography variant="body2" fontWeight={700} noWrap>
                 {post.author.name}
               </Typography>
@@ -130,25 +131,21 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                 noWrap
                 sx={{
                   textDecoration: 'none',
-                  '&:hover': {
-                    textDecoration: 'underline',
-                  },
+                  '&:hover': { textDecoration: 'underline' },
                 }}
               >
                 @{post.author.username}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mr: 'auto' }}>
                 · {formatDate(post.createdAt)}
               </Typography>
               {getUser().username === post.author.username && !post.isRetweet && (
-                <Box sx={{ ml: 'auto' }}>
+                <Box>
                   <IconButton size="small" onClick={handleOptionsClick}>
                     <MoreHorizIcon fontSize="small" />
                   </IconButton>
                 </Box>
-              )
-              }
-
+              )}
             </Box>
 
             <Typography variant="body1" sx={{ mb: 1, whiteSpace: 'pre-wrap' }}>
@@ -159,9 +156,10 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
               <Box
                 component="img"
                 src={
-                  post.imageUrl.startsWith('http') 
-                  ? post.imageUrl
-                  : `${process.env.NEXT_PUBLIC_API_URL}${post.imageUrl}`}
+                  post.imageUrl.startsWith('http')
+                    ? post.imageUrl
+                    : `${process.env.NEXT_PUBLIC_API_URL}${post.imageUrl}`
+                }
                 alt="Post image"
                 sx={{
                   width: '100%',
@@ -181,26 +179,24 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                   mb: 1,
                   borderRadius: 2,
                   cursor: 'pointer',
-                  '&:hover': {
-                    bgcolor: 'action.hover',
-                  },
+                  '&:hover': { bgcolor: 'action.hover' },
                 }}
               >
-                  <Box 
-                    component="button"
-                    sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: 1, 
-                      mb: 0.5,
-                      border: 'none',
-                      background: 'none',
-                      padding: 0,
-                      cursor: 'pointer'
-                    }} 
-                    onClick={handleQuoteClick}
-                  >
-                  <Avatar 
+                <Box
+                  component="button"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    mb: 0.5,
+                    border: 'none',
+                    background: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                  }}
+                  onClick={handleQuoteClick}
+                >
+                  <Avatar
                     sx={{ width: 20, height: 20, fontSize: '0.75rem' }}
                     src={`${process.env.NEXT_PUBLIC_API_URL}${post.quotedPost.author.avatar}`}
                   >
@@ -231,7 +227,16 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
               </Card>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, maxWidth: 450 }}>
+            <Box
+              sx={{
+  display: 'flex',
+  alignItems: 'center',
+  mt: 1,
+  gap: 0,
+  width: '75%',
+  justifyContent: 'space-between',
+              }}
+            >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <IconButton
                   size="small"
@@ -252,9 +257,7 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                 <IconButton
                   size="small"
                   onClick={handleRetweetClick}
-                  sx={{
-                    color: post.isRetweetedByMe ? 'success.main' : 'text.secondary',
-                  }}
+                  sx={{ color: post.isRetweetedByMe ? 'success.main' : 'text.secondary' }}
                 >
                   <RepeatIcon fontSize="small" />
                 </IconButton>
@@ -273,9 +276,7 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                     e.stopPropagation();
                     onToggleLike(post.id);
                   }}
-                  sx={{
-                    color: post.isLikedByMe ? 'error.main' : 'text.secondary',
-                  }}
+                  sx={{ color: post.isLikedByMe ? 'error.main' : 'text.secondary' }}
                 >
                   {post.isLikedByMe ? (
                     <FavoriteIcon fontSize="small" />
@@ -290,10 +291,6 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
                   {post.counts.likes}
                 </Typography>
               </Box>
-
-              <IconButton size="small" sx={{ color: 'text.secondary' }}>
-                <ShareIcon fontSize="small" />
-              </IconButton>
             </Box>
           </Box>
         </Box>
@@ -335,6 +332,7 @@ export default function PostCard({ post, onToggleLike, onToggleRetweet, onCreate
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
       />
+
     </>
   );
 }

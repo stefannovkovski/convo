@@ -27,7 +27,8 @@ export default function FeedPageContent({ title, hashtag }: FeedPageContentProps
       <Box
         sx={{
           position: 'sticky',
-          top: 0,
+          top: { xs: 56, md: 0 },
+          bgcolor: 'background.paper',
           borderBottom: 1,
           borderColor: 'divider',
           p: 2,
