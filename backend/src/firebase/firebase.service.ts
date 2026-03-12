@@ -2,8 +2,6 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export interface NotificationPayload {
   type: string;
@@ -22,49 +20,19 @@ export class FirebaseService implements OnModuleInit {
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit() {
-    const serviceAccountPath =
-      this.config.get<string>('FIREBASE_SERVICE_ACCOUNT_PATH') ||
-      this.config.get<string>('GOOGLE_APPLICATION_CREDENTIALS');
-    const absolutePath = serviceAccountPath
-      ? path.isAbsolute(serviceAccountPath)
-        ? serviceAccountPath
-        : path.resolve(process.cwd(), serviceAccountPath)
-      : null;
+    const serviceAccountJson = this.config.get<string>('FIREBASE_SERVICE_ACCOUNT');
 
-    if (absolutePath && fs.existsSync(absolutePath)) {
-      try {
-        const serviceAccount = JSON.parse(
-          fs.readFileSync(absolutePath, 'utf8'),
-        ) as admin.ServiceAccount;
-        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-        this.initialized = true;
-      } catch (err) {
-        console.warn('Firebase Admin init failed (file):', (err as Error).message);
-      }
+    if (!serviceAccountJson) {
+      console.warn('Firebase Admin: FIREBASE_SERVICE_ACCOUNT env variable not set, skipping init.');
       return;
     }
 
-    const projectId = this.config.get<string>('FIREBASE_PROJECT_ID');
-    const clientEmail = this.config.get<string>('FIREBASE_CLIENT_EMAIL');
-    const privateKey = this.config.get<string>('FIREBASE_PRIVATE_KEY');
-    if (!projectId || !privateKey || !clientEmail) {
-      return;
-    }
-    const privateKeyParsed = privateKey.replace(/\\n/g, '\n').replace(/\r/g, '').trim();
     try {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId,
-          clientEmail,
-          privateKey: privateKeyParsed,
-        }),
-      });
+      const serviceAccount = JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
       this.initialized = true;
     } catch (err) {
-      console.warn(
-        'Firebase Admin init failed (env). Use FIREBASE_SERVICE_ACCOUNT_PATH pointing to your service account JSON file to avoid OpenSSL key parsing issues:',
-        (err as Error).message,
-      );
+      console.warn('Firebase Admin init failed:', (err as Error).message);
     }
   }
 

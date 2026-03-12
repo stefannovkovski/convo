@@ -69,7 +69,7 @@ export default function ExplorePage() {
 
       {!loading && searchQuery && users.length === 0 && (
         <Box sx={{ textAlign: 'center', py: 4 }}>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body1" sx={{color: 'red !important'}} color="text.secondary">
             No users found for "{searchQuery}"
           </Typography>
         </Box>
