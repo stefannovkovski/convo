@@ -19,7 +19,10 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: true,
+    origin: [
+      "http://localhost:3000",
+      "https://convo-sn.vercel.app",
+    ],
     credentials: true,
   });
 
