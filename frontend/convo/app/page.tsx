@@ -1,5 +1,5 @@
 'use client';
-import { Button, Box, Typography, IconButton } from '@mui/material';
+import { Button, Box, IconButton, useMediaQuery } from '@mui/material';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from '@mui/material/styles';
@@ -11,19 +11,23 @@ export default function HomePage() {
   const { toggleTheme, mode } = useThemeContext();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Box
       sx={{
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 16,
+        gap: isMobile ? 4 : 16,
         px: { xs: 4, md: 8, lg: 12 },
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      }}>
-        <IconButton
+      }}
+    >
+      {/* Theme toggle */}
+      <IconButton
         onClick={toggleTheme}
         sx={{
           position: 'absolute',
@@ -47,27 +51,31 @@ export default function HomePage() {
           <Brightness4Icon sx={{ color: '#1976d2' }} />
         )}
       </IconButton>
+
+      {/* Logo */}
       <Box>
-        <Image 
+        <Image
           src={isDark ? '/convo-logo-dark.jpg' : '/convo-logo-light.jpg'}
           alt="Logo"
-          width={700}     
-          height={700}    
+          width={isMobile ? 200 : 700}
+          height={isMobile ? 200 : 700}
           priority
         />
       </Box>
 
-      <Box 
-        sx={{ 
-          display: 'flex', 
+      {/* Buttons */}
+      <Box
+        sx={{
+          display: 'flex',
           flexDirection: 'column',
           gap: 2,
-          minWidth: '300px',
+          width: isMobile ? '100%' : 'auto',
+          minWidth: isMobile ? 'unset' : '300px',
         }}
       >
         <Link href="/login" style={{ textDecoration: 'none' }}>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             size="large"
             fullWidth
             sx={{
@@ -82,8 +90,8 @@ export default function HomePage() {
         </Link>
 
         <Link href="/register" style={{ textDecoration: 'none' }}>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             size="large"
             fullWidth
             sx={{
@@ -97,7 +105,6 @@ export default function HomePage() {
             Register
           </Button>
         </Link>
-
       </Box>
     </Box>
   );
